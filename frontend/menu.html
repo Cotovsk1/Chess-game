@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Шахи — Головне меню</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .logo {
+            font-size: 100px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(144, 205, 244, 0.3));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50%       { transform: translateY(-15px) rotate(2deg); }
+        }
+
+        h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #64748b;
+            margin-bottom: 60px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .menu-cards {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 48px 40px;
+            width: 280px;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(800px circle at var(--x) var(--y), rgba(255,255,255,0.06), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .card:hover::before { opacity: 1; }
+
+        .card:hover {
+            transform: translateY(-12px) rotateX(4deg);
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-icon {
+            font-size: 64px;
+            line-height: 1;
+            transition: transform 0.3s;
+        }
+        .card:hover .card-icon { transform: scale(1.1); }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .card-desc {
+            font-size: 0.9em;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .card.vs-bot   { border-bottom: 4px solid #10b981; }
+        .card.vs-human { border-bottom: 4px solid #3b82f6; }
+
+        .auth-container {
+            margin-top: 40px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 380px;
+        }
+
+        .auth-container h3 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .auth-container input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            transition: all 0.2s;
+        }
+        .auth-container input:focus {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .auth-container .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-container button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        .server-status {
+            margin-top: 60px;
+            font-size: 0.85em;
+            color: #475569;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 16px;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            background: #fc8181;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .dot.online { background: #68d391; box-shadow: 0 0 8px #68d391; }
+
+        .auth-container {
+            margin-top: 30px;
+            background: rgba(255,255,255,0.07);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            text-align: center;
+        }
+        .auth-container input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: none;
+            outline: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .auth-container input::placeholder { color: #ccc; }
+        .auth-container button {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #3182ce;
+            color: #fff;
+            transition: background 0.3s;
+        }
+        .auth-container button:hover { background: #2b6cb0; }
+        #userInfo { display: none; color: #68d391; margin-top: 10px; font-weight: bold; }
+
+        footer {
+            margin-top: 40px;
+            color: #4a5568;
+            font-size: 0.78em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo">♟</div>
+    <h1>ШАХИ</h1>
+    <p class="subtitle">Курсова робота · Chess Game</p>
+
+    <div class="auth-container" id="authBox">
+        <h3>Авторизація</h3>
+        <input type="text" id="username" placeholder="Логін">
+        <input type="email" id="email" placeholder="Email (тільки для реєстрації)">
+        <input type="password" id="password" placeholder="Пароль">
+        <div class="btn-group">
+            <button class="btn-primary" onclick="login()">Увійти</button>
+            <button class="btn-secondary" onclick="register()">Реєстрація</button>
+        </div>
+        <div id="authMsg" style="color: #fc8181; margin-top: 10px; font-size: 0.9em; min-height: 1.2em;"></div>
+    </div>
+
+    <div id="userInfo" class="auth-container" style="text-align: center;">
+        <h3>Профіль</h3>
+        <div style="margin-bottom: 20px;">
+            <p style="color: #94a3b8; font-size: 0.9em;">Гравець</p>
+            <p id="lblUser" style="font-size: 1.4em; font-weight: 700; color: #fff;"></p>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <p style="color: #94a3b8; font-size: 0.9em;">Рейтинг Elo</p>
+            <p id="lblRating" style="font-size: 2em; font-weight: 800; color: #10b981;"></p>
+        </div>
+        <button onclick="logout()" class="btn-secondary" style="width: 100%; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Вийти</button>
+    </div>
+
+    <div class="menu-cards" style="margin-top: 40px;">
+        <a href="/ui/index.html" class="card vs-bot">
+            <div class="card-icon">🤖</div>
+            <div class="card-title">Грати проти бота</div>
+            <div class="card-desc">Зіграй проти Stockfish — одного з найсильніших шахових рушіїв у світі</div>
+        </a>
+
+        <a href="/ui/multiplayer.html" class="card vs-human">
+            <div class="card-icon">👥</div>
+            <div class="card-title">Мультиплеєр</div>
+            <div class="card-desc">Зіграй проти друга онлайн через WebSocket у реальному часі</div>
+        </a>
+    </div>
+
+    <div class="server-status">
+        <span class="dot" id="dot"></span>
+        <span id="srvLabel">Перевірка сервера...</span>
+    </div>
+
+    <footer>Відкрий через: http://127.0.0.1:8000/ui/menu.html</footer>
+
+    <script>
+        // Ефект підсвічування миші на картках
+        document.querySelectorAll('.card').forEach(card => {
+            card.onmousemove = e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            };
+        });
+
+        // Автовиправлення посилань якщо відкрито з file://
+        const isFile = location.protocol === 'file:';
+        const baseUrl = isFile ? 'http://127.0.0.1:8000' : `${location.protocol}//${location.host}`;
+
+        if (isFile) {
+            document.querySelectorAll('a.card').forEach(a => {
+                a.href = 'http://127.0.0.1:8000' + a.getAttribute('href');
+            });
+        }
+
+        // Перевірка статусу сервера
+        async function checkServer() {
+            try {
+                const r = await fetch(`${baseUrl}/`, { signal: AbortSignal.timeout(2000) });
+                if (r.ok) {
+                    document.getElementById('dot').classList.add('online');
+                    document.getElementById('srvLabel').textContent = `Сервер працює · ${baseUrl}`;
+                    return;
+                }
+            } catch (_) {}
+            document.getElementById('dot').classList.remove('online');
+            document.getElementById('srvLabel').textContent = 'Сервер не запущений — запустіть start.bat';
+        }
+
+        async function register() {
+            const u = document.getElementById('username').value;
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            try {
+                const res = await fetch(`${baseUrl}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, email: e, password: p })
+                });
+                if (!res.ok) throw await res.json();
+                document.getElementById('authMsg').style.color = '#68d391';
+                document.getElementById('authMsg').textContent = 'Реєстрація успішна! Тепер увійдіть.';
+            } catch (err) {
+                document.getElementById('authMsg').style.color = '#fc8181';
+                document.getElementById('authMsg').textContent = err.detail || 'Помилка реєстрації';
+            }
+        }
+
+        async function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const params = new URLSearchParams();
+            params.append('username', u);
+            params.append('password', p);
+
+            try {
+                const res = await fetch(`${baseUrl}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                if (!res.ok) throw await res.json();
+                const data = await res.json();
+                localStorage.setItem('chess_token', data.access_token);
+                document.getElementById('authMsg').textContent = '';
+                await checkMe();
+            } catch (err) {
+                document.getElementById('authMsg').style.color = '#fc8181';
+                document.getElementById('authMsg').textContent = 'Неправильний логін або пароль';
+            }
+        }
+
+        async function checkMe() {
+            const token = localStorage.getItem('chess_token');
+            if (!token) {
+                document.getElementById('authBox').style.display = 'block';
+                document.getElementById('userInfo').style.display = 'none';
+                return;
+            }
+            try {
+                const res = await fetch(`${baseUrl}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error();
+                const user = await res.json();
+                document.getElementById('authBox').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('lblUser').textContent = user.username;
+                document.getElementById('lblRating').textContent = user.rating;
+            } catch (err) {
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('chess_token');
+            document.getElementById('authBox').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        checkMe();
+        checkServer();
+        setInterval(checkServer, 5000);
+    </script>
+</body>
+</html>
+
