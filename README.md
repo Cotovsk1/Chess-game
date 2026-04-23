@@ -1,6 +1,6 @@
 # ♟ Chess Game — Курсова робота
 
-Шахова гра з FastAPI бекендом, Stockfish рушієм та WebSocket мультиплеєром.
+Шахова гра з FastAPI бекендом, Stockfish рушієм, WebSocket мультиплеєром та системою авторизації гравців.
 
 ---
 
@@ -14,40 +14,39 @@ start.bat  →  вибери [1]
 
 ---
 
-### 🌐 Публічний доступ через DevTunnel
+### 🌐 Публічний доступ через ngrok
 
 > Дозволяє грати з другом через інтернет — не потрібен VPN або порт-форвардинг.
 
 #### Крок 1 — Запусти тунель
 ```
-tunnel.bat
+start.bat  →  вибери [2]
 ```
 або вручну:
 ```bat
 # Термінал 1 — сервер
-cd chess_project\backend
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+cd backend
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
 
 # Термінал 2 — тунель
-devtunnel user login
-devtunnel host -p 8000 --allow-anonymous
+ngrok http 8000
 ```
 
 #### Крок 2 — Скопіюй URL
-DevTunnel покаже щось схоже на:
+ngrok покаже щось схоже на:
 ```
-Connect via browser: https://abc123xy-8000.euw.devtunnels.ms
+Forwarding  https://abc123xy.ngrok-free.app -> http://127.0.0.1:8000
 ```
 
 #### Крок 3 — Відкрий у браузері
 ```
-https://abc123xy-8000.euw.devtunnels.ms/ui/menu.html
+https://abc123xy.ngrok-free.app/ui/menu.html
 ```
 
 #### Крок 4 — Поділися посиланням з другом
 Для мультиплеєра друг відкриває той самий URL:
 ```
-https://abc123xy-8000.euw.devtunnels.ms/ui/multiplayer.html
+https://abc123xy.ngrok-free.app/ui/multiplayer.html
 ```
 
 > ✅ **WebSocket автоматично перемикається на `wss://`** коли сторінка відкрита по `https://`
@@ -58,23 +57,29 @@ https://abc123xy-8000.euw.devtunnels.ms/ui/multiplayer.html
 
 ```
 Chess-game/
-├── start.bat              ← Локальний запуск
-├── tunnel.bat             ← DevTunnel запуск
-├── chess_project/
-│   ├── backend/
-│   │   ├── main.py        ← FastAPI app
-│   │   ├── game_logic.py  ← Логіка гри + Stockfish
-│   │   ├── schemas.py     ← Pydantic моделі
-│   │   ├── store.py       ← In-memory сховище ігор
-│   │   ├── .env           ← Конфіг (STOCKFISH_PATH, ALLOWED_ORIGINS)
-│   │   ├── requirements.txt
-│   │   └── routers/
-│   │       ├── game.py    ← REST API (start, play, resign)
-│   │       └── websocket.py ← WS мультиплеєр
-│   └── frontend/
-│       ├── menu.html      ← Головне меню
-│       ├── index.html     ← Гра проти Stockfish
-│       └── multiplayer.html ← Мультиплеєр P2P
+├── backend/
+│   ├── main.py            ← FastAPI app + Stockfish lifespan
+│   ├── game_logic.py      ← Логіка гри + Stockfish (Strategy/Command)
+│   ├── schemas.py         ← Pydantic моделі
+│   ├── models.py          ← SQLAlchemy ORM моделі (Player, Game, Move, …)
+│   ├── database.py        ← SQLite підключення (SQLAlchemy)
+│   ├── state_manager.py   ← In-memory сховище ігор + ConnectionManager
+│   ├── utils.py           ← Розрахунок Elo рейтингу
+│   ├── start.bat          ← Локальний / ngrok запуск
+│   ├── .env               ← Конфіг (STOCKFISH_PATH, ALLOWED_ORIGINS, SECRET_KEY)
+│   ├── requirements.txt
+│   ├── test_auth.py       ← Тести авторизації
+│   ├── test_elo_logic.py  ← Тести Elo
+│   ├── test_logic_simple.py ← Тести логіки гри
+│   ├── tests/             ← Додаткові тести
+│   └── routers/
+│       ├── game.py        ← REST API (start, play, resign, …)
+│       ├── websocket.py   ← WS мультиплеєр
+│       └── auth.py        ← Реєстрація / логін / JWT
+└── frontend/
+    ├── menu.html          ← Головне меню
+    ├── index.html         ← Гра проти Stockfish
+    └── multiplayer.html   ← Мультиплеєр P2P
 ```
 
 ---
@@ -82,17 +87,21 @@ Chess-game/
 ## 🔧 Встановлення залежностей
 
 ```bash
-pip install -r chess_project/backend/requirements.txt
+pip install -r backend/requirements.txt
 ```
 
 ## 🎮 API Endpoints
 
 | Метод | URL | Опис |
 |-------|-----|------|
-| `GET`  | `/` | Статус сервера |
-| `POST` | `/start` | Нова гра (параметр `level` 1-10) |
-| `POST` | `/play/{id}` | Зробити хід |
-| `GET`  | `/game/{id}` | Стан гри |
+| `GET`    | `/` | Статус сервера |
+| `POST`   | `/start` | Нова гра проти Stockfish (`level` 1-10, `time_control_id`) |
+| `POST`   | `/start_custom` | Нова гра з кастомною позицією (FEN) |
+| `POST`   | `/play/{id}` | Зробити хід |
+| `GET`    | `/game/{id}` | Стан гри |
 | `DELETE` | `/game/{id}` | Здатися |
-| `WS`   | `/ws/play/{id}` | WebSocket мультиплеєр |
+| `WS`     | `/ws/play/{id}` | WebSocket мультиплеєр |
+| `POST`   | `/auth/register` | Реєстрація нового гравця |
+| `POST`   | `/auth/login` | Логін (повертає JWT токен) |
+| `GET`    | `/auth/me` | Профіль поточного гравця |
 
