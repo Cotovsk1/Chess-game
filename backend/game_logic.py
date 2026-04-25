@@ -2,6 +2,7 @@ import chess
 import chess.engine
 from datetime import datetime
 from abc import ABC, abstractmethod
+from starlette.websockets import WebSocketDisconnect
 # --- 1. Патерн Команда: Інкапсуляція ходів ---
 class Command(ABC):
     @abstractmethod
@@ -53,8 +54,8 @@ class WebSocketObserver(Observer):
     async def update_state(self, message: dict):
         try:
             await self.websocket.send_json(message)
-        except Exception:
-            # Можна додати логування, якщо сокет закритий
+        except (WebSocketDisconnect, RuntimeError):
+            # Сокет може бути закритим/від'єднаним під час відправлення.
             pass
 
 class GameSubject:
@@ -146,10 +147,10 @@ class ChessGame(GameSubject):
         self.history = []  # Список виконаних команд
 
         # Контроль часу
-        self.initial_time = initial_time  # в секундах
-        self.increment = increment
-        self.white_time = initial_time
-        self.black_time = initial_time
+        self.initial_time = float(initial_time) if initial_time is not None else None  # в секундах
+        self.increment = float(increment)
+        self.white_time = self.initial_time
+        self.black_time = self.initial_time
         self.last_move_time = None
 
     async def execute_move(self, strategy: MoveStrategy):
@@ -157,12 +158,12 @@ class ChessGame(GameSubject):
         now = datetime.now()
         if self.initial_time is not None and self.last_move_time is not None:
             elapsed = (now - self.last_move_time).total_seconds()
-            if self.board.turn == chess.WHITE:
-                self.white_time = max(0, self.white_time - elapsed)
+            if self.board.turn == chess.WHITE and self.white_time is not None:
+                self.white_time = max(0.0, self.white_time - elapsed)
                 if self.white_time > 0:
                     self.white_time += self.increment
-            else:
-                self.black_time = max(0, self.black_time - elapsed)
+            elif self.black_time is not None:
+                self.black_time = max(0.0, self.black_time - elapsed)
                 if self.black_time > 0:
                     self.black_time += self.increment
         

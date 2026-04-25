@@ -18,18 +18,18 @@ STOCKFISH_PATH = os.getenv("STOCKFISH_PATH", "engine/stockfish-windows-x86-64-av
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(fastapi_app: FastAPI):
     # Відкриваємо Stockfish один раз при старті сервера (асинхронно)
     transport, engine_instance = await chess.engine.popen_uci(STOCKFISH_PATH)
-    app.state.engine = engine_instance
+    fastapi_app.state.engine = engine_instance
     print("✅ Stockfish запущено (асинхронно)!")
     yield
     # Закриваємо рушій при зупинці сервера
     try:
-        await app.state.engine.quit()
+        await fastapi_app.state.engine.quit()
         print("🛑 Stockfish зупинено.")
-    except Exception:
-        pass
+    except (chess.engine.EngineError, OSError):
+        print("⚠️ Помилка при зупинці Stockfish.")
 
 
 app = FastAPI(

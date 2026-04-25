@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, CheckConstraint
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, CheckConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
@@ -39,8 +39,8 @@ class Game(Base):
     result = Column(String(20), CheckConstraint("result IN ('WhiteWins', 'BlackWins', 'Draw', 'InProgress')"))
     played_at = Column(DateTime, server_default=func.now())
 
-    white_player = relationship("Player", foreign_keys=[white_player_id])
-    black_player = relationship("Player", foreign_keys=[black_player_id])
+    white_player = relationship("Player", foreign_keys="Game.white_player_id")
+    black_player = relationship("Player", foreign_keys="Game.black_player_id")
     moves = relationship("Move", back_populates="game", cascade="all, delete-orphan")
 
 class Move(Base):
