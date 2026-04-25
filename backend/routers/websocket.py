@@ -3,13 +3,13 @@ import json
 import chess
 from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from chess_project.backend.state_manager import active_games, manager
-from chess_project.backend.game_logic import WebSocketObserver, StrategyFactory
-from chess_project.backend.database import SessionLocal
-from chess_project.backend import models
-from chess_project.backend.routers.auth import ALGORITHM, SECRET_KEY
+from backend.state_manager import active_games, manager
+from backend.game_logic import WebSocketObserver, StrategyFactory
+from backend.database import SessionLocal
+from backend import models
+from backend.routers.auth import ALGORITHM, SECRET_KEY
 from jose import jwt
-from chess_project.backend.utils import calculate_elo
+from backend.utils import calculate_elo
 from typing import Callable, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError

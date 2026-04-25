@@ -14,7 +14,7 @@ load_dotenv()
 # Ініціалізація бази даних
 models.Base.metadata.create_all(bind=engine)
 
-STOCKFISH_PATH = os.getenv("STOCKFISH_PATH", "./engine/stockfish-windows-x86-64-avx2.exe")
+STOCKFISH_PATH = os.getenv("STOCKFISH_PATH", "engine/stockfish-windows-x86-64-avx2.exe")
 
 
 @asynccontextmanager
@@ -51,7 +51,7 @@ app.add_middleware(
 )
 
 # Роздаємо frontend через FastAPI (вирішує проблему file:// CORS)
-frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+frontend_path = os.path.join(os.path.dirname(__file__), "../chess_project", "frontend")
 if os.path.isdir(frontend_path):
     app.mount("/ui", StaticFiles(directory=frontend_path, html=True), name="frontend")
 

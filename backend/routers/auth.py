@@ -8,9 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from chess_project.backend.database import get_db
-from chess_project.backend import models
-from chess_project.backend import schemas
+from backend.database import get_db
+from backend import models, schemas
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:

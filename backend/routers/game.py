@@ -4,14 +4,14 @@ import chess
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
-from chess_project.backend.schemas import MoveRequest, CustomGameRequest, StartGameRequest
-from chess_project.backend.state_manager import active_games
-from chess_project.backend.game_logic import ChessGame, HumanStrategy, StockfishStrategy, StrategyFactory
-from chess_project.backend.database import get_db
-from chess_project.backend.routers.auth import get_optional_user
-from chess_project.backend import models
+from backend.schemas import MoveRequest, CustomGameRequest, StartGameRequest
+from backend.state_manager import active_games
+from backend.game_logic import ChessGame, StrategyFactory
+from backend.database import get_db
+from backend.routers.auth import get_optional_user
+from backend import models
 
-from chess_project.backend.utils import calculate_elo
+from backend.utils import calculate_elo
 
 # Створюємо роутер
 router = APIRouter()
