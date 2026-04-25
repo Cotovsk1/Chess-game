@@ -167,7 +167,7 @@ def start_custom_game(
         "time_control": {"initial": initial_time, "increment": increment} if initial_time else None
     }
 
-@router.get("/game/{game_id}")
+@router.get("/{game_id}")
 def get_game_state(game_id: str):
     """Отримати поточний стан гри"""
     if game_id not in active_games:
@@ -196,7 +196,7 @@ def get_game_state(game_id: str):
         "black_time": b_time
     }
 
-@router.delete("/game/{game_id}")
+@router.delete("/{game_id}")
 def resign_game(game_id: str, db: Session = Depends(get_db)):
     """Здатися / завершити гру достроково"""
     if game_id not in active_games:

@@ -37,3 +37,12 @@ class PlayerResponse(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class GameResponse(BaseModel):
+    game_id: str
+    board_fen: str
+    status: str = "active"  
+    last_move: str | None = None
+    
+    class Config:
+        from_attributes = True

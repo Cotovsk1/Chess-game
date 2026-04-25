@@ -15,6 +15,7 @@ class Command(ABC):
 
 class MoveCommand(Command):
     def __init__(self, board: chess.Board, strategy: MoveStrategy):
+        self.game = None  # Це буде встановлено при виконанні
         self.board = board
         self.strategy = strategy
         self.move = None
