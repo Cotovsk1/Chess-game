@@ -646,7 +646,7 @@
             const headers = {};
             if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            const res  = await fetch(`${API_URL}/start`, {
+            const res  = await fetch(`${API_URL}/game/start`, {
                 method: 'POST',
                 headers: headers
             });

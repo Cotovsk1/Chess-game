@@ -81,6 +81,6 @@ def read_root():
 
 
 # Підключаємо наші роутери
-app.include_router(game.router,  tags=["game"])
+app.include_router(game.router, prefix="/game", tags=["game"])
 app.include_router(websocket.router, tags=["websocket"])
-app.include_router(auth.router,  tags=["auth"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])

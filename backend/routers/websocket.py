@@ -130,7 +130,12 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
     try:
         while True:
             data = await websocket.receive_text()
-            move_data = json.loads(data)
+            try:
+                move_data = json.loads(data)
+            except json.JSONDecodeError:
+                await websocket.send_json({"error": "Невалідний формат даних (очікується JSON)!"})
+                continue
+                
             uci_move = move_data.get("move")
 
             if uci_move:
