@@ -36,9 +36,11 @@ async def lifespan(fastapi_app: FastAPI):
             fastapi_app.state.engine = engine_res[1]
         else:
             fastapi_app.state.engine = engine_res
+        fastapi_app.state.engine_lock = asyncio.Lock()
         print("✅ Stockfish запущено (асинхронно)!")
     except Exception as e:
         fastapi_app.state.engine = None
+        fastapi_app.state.engine_lock = None
         print(f"⚠️ Не вдалося запустити Stockfish: {e}")
     yield
     cleanup_task.cancel()

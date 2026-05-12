@@ -12,6 +12,7 @@ from routers.auth import get_optional_user
 import models
 
 from utils import calculate_elo
+from starlette.concurrency import run_in_threadpool
 
 # Створюємо роутер
 router = APIRouter()
@@ -238,7 +239,7 @@ async def play_move(game_id: str, request: MoveRequest, http_request: Request, d
         # Використовуємо StrategyFactory та execute_move (Command)
         human_strategy = StrategyFactory.get_strategy("human", uci_move=uci_move)
         await game.execute_move(human_strategy)
-        record_move(db, game.db_id, uci_move, len(game.board.move_stack))
+        await run_in_threadpool(record_move, db, game.db_id, uci_move, len(game.board.move_stack))
     except ValueError:
         raise HTTPException(status_code=400, detail="Нелегальний хід!")
 
@@ -246,22 +247,23 @@ async def play_move(game_id: str, request: MoveRequest, http_request: Request, d
     fen_after_human = game.board.fen()
 
     if game.board.is_game_over():
-        resp = _game_over_response(game, db)
+        resp = await run_in_threadpool(_game_over_response, game, db)
         del active_games[game_id]
         return resp
 
     # Хід Stockfish з використанням синглтон-рушія
     try:
         engine = http_request.app.state.engine
+        engine_lock = getattr(http_request.app.state, "engine_lock", None)
         # Використовуємо StrategyFactory та execute_move (Command)
-        bot_strategy = StrategyFactory.get_strategy("stockfish", engine=engine, level=game.level)
+        bot_strategy = StrategyFactory.get_strategy("stockfish", engine=engine, level=game.level, lock=engine_lock)
         bot_move = await game.execute_move(bot_strategy)
-        record_move(db, game.db_id, bot_move.uci(), len(game.board.move_stack))
+        await run_in_threadpool(record_move, db, game.db_id, bot_move.uci(), len(game.board.move_stack))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Помилка рушія: {str(e)}")
 
     if game.board.is_game_over():
-        resp = _game_over_response(game, db)
+        resp = await run_in_threadpool(_game_over_response, game, db)
         resp["fen_after_human"] = fen_after_human
         resp["bot_move"] = bot_move.uci()
         del active_games[game_id]
