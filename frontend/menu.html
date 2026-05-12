@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <title>Шахи — Головне меню</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -26,8 +31,15 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50%       { transform: translateY(-15px) rotate(2deg); }
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(2deg);
+            }
         }
 
         h1 {
@@ -37,8 +49,9 @@
             margin-bottom: 8px;
             background: linear-gradient(to bottom, #fff, #94a3b8);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         .subtitle {
@@ -81,14 +94,19 @@
         .card::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(800px circle at var(--x) var(--y), rgba(255,255,255,0.06), transparent 40%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(800px circle at var(--x) var(--y), rgba(255, 255, 255, 0.06), transparent 40%);
             opacity: 0;
             transition: opacity 0.5s;
             pointer-events: none;
         }
 
-        .card:hover::before { opacity: 1; }
+        .card:hover::before {
+            opacity: 1;
+        }
 
         .card:hover {
             transform: translateY(-12px) rotateX(4deg);
@@ -102,7 +120,10 @@
             line-height: 1;
             transition: transform 0.3s;
         }
-        .card:hover .card-icon { transform: scale(1.1); }
+
+        .card:hover .card-icon {
+            transform: scale(1.1);
+        }
 
         .card-title {
             font-size: 1.4em;
@@ -116,8 +137,13 @@
             line-height: 1.6;
         }
 
-        .card.vs-bot   { border-bottom: 4px solid #10b981; }
-        .card.vs-human { border-bottom: 4px solid #3b82f6; }
+        .card.vs-bot {
+            border-bottom: 4px solid #10b981;
+        }
+
+        .card.vs-human {
+            border-bottom: 4px solid #3b82f6;
+        }
 
         .auth-container {
             margin-top: 40px;
@@ -126,7 +152,7 @@
             padding: 30px;
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 380px;
         }
 
@@ -146,6 +172,7 @@
             color: #fff;
             transition: all 0.2s;
         }
+
         .auth-container input:focus {
             background: rgba(255, 255, 255, 0.07);
             border-color: #3b82f6;
@@ -168,16 +195,32 @@
             transition: all 0.2s;
         }
 
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
-        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
 
         .server-status {
             margin-top: 60px;
             font-size: 0.85em;
             color: #475569;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.2);
             padding: 8px 16px;
             border-radius: 100px;
             display: flex;
@@ -186,32 +229,42 @@
         }
 
         .dot {
-            width: 9px; height: 9px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             background: #fc8181;
             display: inline-block;
             transition: background 0.3s;
         }
-        .dot.online { background: #68d391; box-shadow: 0 0 8px #68d391; }
+
+        .dot.online {
+            background: #68d391;
+            box-shadow: 0 0 8px #68d391;
+        }
 
         .auth-container {
             margin-top: 30px;
-            background: rgba(255,255,255,0.07);
+            background: rgba(255, 255, 255, 0.07);
             padding: 20px;
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.12);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             text-align: center;
         }
+
         .auth-container input {
             padding: 8px;
             margin: 5px;
             border-radius: 4px;
             border: none;
             outline: none;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
         }
-        .auth-container input::placeholder { color: #ccc; }
+
+        .auth-container input::placeholder {
+            color: #ccc;
+        }
+
         .auth-container button {
             padding: 8px 16px;
             margin: 5px;
@@ -222,8 +275,17 @@
             color: #fff;
             transition: background 0.3s;
         }
-        .auth-container button:hover { background: #2b6cb0; }
-        #userInfo { display: none; color: #68d391; margin-top: 10px; font-weight: bold; }
+
+        .auth-container button:hover {
+            background: #2b6cb0;
+        }
+
+        #userInfo {
+            display: none;
+            color: #68d391;
+            margin-top: 10px;
+            font-weight: bold;
+        }
 
         footer {
             margin-top: 40px;
@@ -232,6 +294,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="logo">♟</div>
@@ -260,7 +323,8 @@
             <p style="color: #94a3b8; font-size: 0.9em;">Рейтинг Elo</p>
             <p id="lblRating" style="font-size: 2em; font-weight: 800; color: #10b981;"></p>
         </div>
-        <button onclick="logout()" class="btn-secondary" style="width: 100%; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Вийти</button>
+        <button onclick="logout()" class="btn-secondary"
+            style="width: 100%; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Вийти</button>
     </div>
 
     <div class="menu-cards" style="margin-top: 40px;">
@@ -315,7 +379,7 @@
                     document.getElementById('srvLabel').textContent = `Сервер працює · ${baseUrl}`;
                     return;
                 }
-            } catch (_) {}
+            } catch (_) { }
             document.getElementById('dot').classList.remove('online');
             document.getElementById('srvLabel').textContent = 'Сервер не запущений — запустіть start.bat';
         }
@@ -398,5 +462,5 @@
         setInterval(checkServer, 5000);
     </script>
 </body>
-</html>
 
+</html>
