@@ -183,9 +183,6 @@ class ChessGame(GameSubject):
             return True
         return False
 
-    async def make_move(self, strategy: MoveStrategy):
-        """Застарілий метод для сумісності (тимчасово)"""
-        return await self.execute_move(strategy)
 
     def get_player_color(self, websocket) -> str | None:
         """Повертає колір гравця за його WebSocket об'єктом"""

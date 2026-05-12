@@ -21,6 +21,10 @@ STOCKFISH_PATH = os.getenv("STOCKFISH_PATH", "engine/stockfish-windows-x86-64-av
 
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
+    import asyncio
+    from state_manager import cleanup_inactive_games_loop
+    cleanup_task = asyncio.create_task(cleanup_inactive_games_loop())
+    
     fastapi_app.state.engine = None
     if os.getenv("DISABLE_STOCKFISH", "0") in ("1", "true", "True"):
         print("ℹ️ Stockfish disabled by environment.")
@@ -37,6 +41,7 @@ async def lifespan(fastapi_app: FastAPI):
         fastapi_app.state.engine = None
         print(f"⚠️ Не вдалося запустити Stockfish: {e}")
     yield
+    cleanup_task.cancel()
     if fastapi_app.state.engine:
         try:
             await fastapi_app.state.engine.quit()

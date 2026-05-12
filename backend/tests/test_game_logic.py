@@ -7,7 +7,7 @@ if project_root not in sys.path:
 import pytest
 import chess
 from unittest.mock import MagicMock, AsyncMock
-from backend.game_logic import ChessGame, MoveCommand, StockfishStrategy
+from game_logic import ChessGame, MoveCommand, StockfishStrategy
 
 
 @pytest.mark.anyio

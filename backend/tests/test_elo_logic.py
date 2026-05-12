@@ -1,6 +1,6 @@
 import pytest
-from backend.models import Player
-from backend.utils import calculate_elo
+from models import Player
+from utils import calculate_elo
 
 def test_elo_db_integration(db_session):
     # Додаємо password_hash, бо це обов'язкове поле (NOT NULL)

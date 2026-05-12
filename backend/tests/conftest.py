@@ -17,8 +17,8 @@ if project_root not in sys.path:
 os.environ["SECRET_KEY"] = "test-secret-key-12345"
 os.environ["STOCKFISH_PATH"] = "dummy"
 
-from backend.main import app
-from backend.database import Base, get_db
+from main import app
+from database import Base, get_db
 
 engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
