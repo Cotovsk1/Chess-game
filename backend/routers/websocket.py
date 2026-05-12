@@ -199,17 +199,44 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
                     await websocket.send_json({"error": "Нелегальний хід!"})
 
     except WebSocketDisconnect:
+        disconnected_color = None
         # Скидаємо WebSocket гравця, що відключився
         if game.white_ws is websocket:
             game.white_ws = None
+            disconnected_color = "white"
         elif game.black_ws is websocket:
             game.black_ws = None
+            disconnected_color = "black"
 
         game.detach(websocket)
         manager.disconnect(websocket, game_id)
 
         if game_id in active_games:
-            await manager.broadcast_to_game(
-                {"type": "disconnect", "error": "Суперник відключився!"},
-                game_id
-            )
+            if game.white_ws is None and game.black_ws is None:
+                # Обидва гравці вийшли - нічия і очищення
+                _end_ws_game(game.db_id, "Draw", game.white_player_id, game.black_player_id)
+                del active_games[game_id]
+            elif disconnected_color:
+                await manager.broadcast_to_game(
+                    {"type": "disconnect", "error": "Суперник відключився! У нього є 1 хвилина на повернення."},
+                    game_id
+                )
+                
+                # Запускаємо таймер на авто-поразку (60 секунд)
+                import asyncio
+                async def auto_forfeit(g_id: str, color: str):
+                    await asyncio.sleep(60)
+                    if g_id in active_games:
+                        g = active_games[g_id]
+                        # Якщо гравець так і не повернувся
+                        if (color == "white" and g.white_ws is None) or (color == "black" and g.black_ws is None):
+                            winner_res = "BlackWins" if color == "white" else "WhiteWins"
+                            _end_ws_game(g.db_id, winner_res, g.white_player_id, g.black_player_id)
+                            await manager.broadcast_to_game(
+                                {"type": "game_over", "error": "Суперник покинув гру (таймаут). Ви перемогли!"},
+                                g_id
+                            )
+                            if g_id in active_games:
+                                del active_games[g_id]
+
+                asyncio.create_task(auto_forfeit(game_id, disconnected_color))
