@@ -29,6 +29,8 @@ class PlayerResponse(BaseModel):
     username: str
     email: str
     rating: int
+    avatar_url: str | None = None
+    is_active: bool = True
 
 
 

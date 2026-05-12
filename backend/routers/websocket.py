@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from jose import JWTError
 from starlette.concurrency import run_in_threadpool
+from routers.game import get_or_create_game_result
 
 router = APIRouter()
 
@@ -48,7 +49,7 @@ def _end_ws_game(game_db_id: int, result_str: str, white_id: int, black_id: int)
     with SessionLocal() as db:
         db_game = db.query(models.Game).filter(models.Game.id == game_db_id).first()
         if db_game:
-            db_game.result = result_str
+            db_game.result_id = get_or_create_game_result(db, result_str)
             db_game.white_player_id = white_id
             db_game.black_player_id = black_id
             
