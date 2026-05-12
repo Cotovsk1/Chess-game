@@ -5,11 +5,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import chess.engine
-from backend.routers import game, websocket, auth
-from backend.database import engine
-from backend.models import Base
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
+from routers import game, websocket, auth
+from database import engine
+from models import Base
+
 
 # Ініціалізація бази даних
 Base.metadata.create_all(bind=engine)
@@ -61,7 +63,7 @@ app.add_middleware(
 )
 
 # Роздаємо frontend через FastAPI (вирішує проблему file:// CORS)
-frontend_path = os.path.join(os.path.dirname(__file__), "../chess_project", "frontend")
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(frontend_path):
     app.mount("/ui", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
@@ -72,6 +74,6 @@ def read_root():
 
 
 # Підключаємо наші роутери
-app.include_router(game.router, prefix="/game", tags=["game"])
-app.include_router(websocket.router, prefix="/websocket", tags=["websocket"])
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(game.router,  tags=["game"])
+app.include_router(websocket.router, tags=["websocket"])
+app.include_router(auth.router,  tags=["auth"])
