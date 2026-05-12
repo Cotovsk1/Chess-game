@@ -3,21 +3,22 @@ import json
 import chess
 from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from backend.state_manager import active_games, manager
-from backend.game_logic import WebSocketObserver, StrategyFactory
-from backend.database import SessionLocal
-from backend import models
-from backend.routers.auth import ALGORITHM, SECRET_KEY
+from state_manager import active_games, manager
+from game_logic import CallbackObserver, StrategyFactory
+from database import SessionLocal
+import models
+from routers.auth import ALGORITHM, SECRET_KEY
 from jose import jwt
-from backend.utils import calculate_elo
-from typing import Callable, Optional
+from utils import calculate_elo
+from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from jose import JWTError
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter()
 
-def _get_user_from_token(token: str, db: Callable[[], Session]) -> Optional[models.Player]:
+def _get_user_from_token(token: str) -> Optional[models.Player]:
     if not token:
         return None
     try:
@@ -25,41 +26,32 @@ def _get_user_from_token(token: str, db: Callable[[], Session]) -> Optional[mode
         username: str = payload.get("sub")
         if username is None:
             return None
-        db_session = db()
-        try:
+        with SessionLocal() as db_session:
             user = db_session.query(models.Player).filter(models.Player.username == username).first()
+            if user:
+                db_session.expunge(user)
             return user
-        finally:
-            db_session.close()
     except (JWTError, SQLAlchemyError):
         return None
-
 
 def _record_ws_move(game_db_id: int, uci_move: str, move_number: int):
     if not game_db_id:
         return
-    db = SessionLocal()
-    try:
+    with SessionLocal() as db:
         db_move = models.Move(game_id=game_db_id, notation=uci_move, move_number=move_number)
         db.add(db_move)
         db.commit()
-    finally:
-        db.close()
-
 
 def _end_ws_game(game_db_id: int, result_str: str, white_id: int, black_id: int):
     if not game_db_id:
         return
-    db = SessionLocal()
-    try:
+    with SessionLocal() as db:
         db_game = db.query(models.Game).filter(models.Game.id == game_db_id).first()
         if db_game:
             db_game.result = result_str
             db_game.white_player_id = white_id
             db_game.black_player_id = black_id
-            db.commit()
             
-            # Оновлюємо рейтинг
             white = db.query(models.Player).filter(models.Player.id == white_id).first() if white_id else None
             black = db.query(models.Player).filter(models.Player.id == black_id).first() if black_id else None
             
@@ -74,9 +66,8 @@ def _end_ws_game(game_db_id: int, result_str: str, white_id: int, black_id: int)
                 
                 white.rating = max(100, new_w_elo)
                 black.rating = max(100, new_b_elo)
-                db.commit()
-    finally:
-        db.close()
+                
+            db.commit()
 
 
 @router.websocket("/ws/play/{game_id}")
@@ -91,21 +82,27 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
     if not connected:
         return
 
-    user = _get_user_from_token(token, SessionLocal)
+    user = await run_in_threadpool(_get_user_from_token, token)
 
     game = active_games[game_id]
     
-    # Додаємо спостерігача для цього підключення
-    observer = WebSocketObserver(websocket)
+    # Додаємо абстрактного спостерігача для цього підключення
+    async def send_update(message: dict):
+        try:
+            await websocket.send_json(message)
+        except Exception:
+            pass
+            
+    observer = CallbackObserver(send_update)
     game.attach(observer)
 
     # Призначаємо кольори
-    if game.white_ws is None:
-        game.white_ws = websocket
+    if game.white_client is None:
+        game.white_client = websocket
         game.white_player_id = user.id if user else None
         my_color = "white"
     else:
-        game.black_ws = websocket
+        game.black_client = websocket
         game.black_player_id = user.id if user else None
         my_color = "black"
 
@@ -120,7 +117,7 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
     })
 
     # Якщо обидва гравці під'єдналися, повідомляємо про початок
-    if game.white_ws and game.black_ws:
+    if game.white_client and game.black_client:
         # Установлюємо час старту першого ходу
         if game.initial_time is not None:
             game.last_move_time = datetime.now()
@@ -133,12 +130,17 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
     try:
         while True:
             data = await websocket.receive_text()
-            move_data = json.loads(data)
+            try:
+                move_data = json.loads(data)
+            except json.JSONDecodeError:
+                await websocket.send_json({"error": "Невалідний формат даних (очікується JSON)!"})
+                continue
+                
             uci_move = move_data.get("move")
 
             if uci_move:
                 # --- Перевірка: чи підключені обидва гравці ---
-                if game.white_ws is None or game.black_ws is None:
+                if game.white_client is None or game.black_client is None:
                     await websocket.send_json({"error": "Очікуємо другого гравця!"})
                     continue
 
@@ -164,7 +166,7 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
                     # Використовуємо StrategyFactory та execute_move (Command)
                     human_strategy = StrategyFactory.get_strategy("human", uci_move=uci_move)
                     await game.execute_move(human_strategy)
-                    _record_ws_move(game.db_id, uci_move, len(game.board.move_stack))
+                    await run_in_threadpool(_record_ws_move, game.db_id, uci_move, len(game.board.move_stack))
 
                     response = {
                         "type": "update",
@@ -190,7 +192,7 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
                             db_res = "BlackWins"
                         else:
                             db_res = "Draw"
-                        _end_ws_game(game.db_id, db_res, game.white_player_id, game.black_player_id)
+                        await run_in_threadpool(_end_ws_game, game.db_id, db_res, game.white_player_id, game.black_player_id)
 
                         if game_id in active_games:
                             del active_games[game_id]
@@ -199,17 +201,44 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
                     await websocket.send_json({"error": "Нелегальний хід!"})
 
     except WebSocketDisconnect:
+        disconnected_color = None
         # Скидаємо WebSocket гравця, що відключився
-        if game.white_ws is websocket:
-            game.white_ws = None
-        elif game.black_ws is websocket:
-            game.black_ws = None
+        if game.white_client is websocket:
+            game.white_client = None
+            disconnected_color = "white"
+        elif game.black_client is websocket:
+            game.black_client = None
+            disconnected_color = "black"
 
-        game.detach(websocket)
+        game.detach(send_update)
         manager.disconnect(websocket, game_id)
 
         if game_id in active_games:
-            await manager.broadcast_to_game(
-                {"type": "disconnect", "error": "Суперник відключився!"},
-                game_id
-            )
+            if game.white_client is None and game.black_client is None:
+                # Обидва гравці вийшли - нічия і очищення
+                await run_in_threadpool(_end_ws_game, game.db_id, "Draw", game.white_player_id, game.black_player_id)
+                del active_games[game_id]
+            elif disconnected_color:
+                await manager.broadcast_to_game(
+                    {"type": "disconnect", "error": "Суперник відключився! У нього є 1 хвилина на повернення."},
+                    game_id
+                )
+                
+                # Запускаємо таймер на авто-поразку (60 секунд)
+                import asyncio
+                async def auto_forfeit(g_id: str, color: str):
+                    await asyncio.sleep(60)
+                    if g_id in active_games:
+                        g = active_games[g_id]
+                        # Якщо гравець так і не повернувся
+                        if (color == "white" and g.white_client is None) or (color == "black" and g.black_client is None):
+                            winner_res = "BlackWins" if color == "white" else "WhiteWins"
+                            await run_in_threadpool(_end_ws_game, g.db_id, winner_res, g.white_player_id, g.black_player_id)
+                            await manager.broadcast_to_game(
+                                {"type": "game_over", "error": "Суперник покинув гру (таймаут). Ви перемогли!"},
+                                g_id
+                            )
+                            if g_id in active_games:
+                                del active_games[g_id]
+
+                asyncio.create_task(auto_forfeit(game_id, disconnected_color))

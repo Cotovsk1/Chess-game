@@ -5,7 +5,7 @@ project_root = str(Path(__file__).resolve().parent.parent.parent)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from backend.utils import calculate_elo
+from utils import calculate_elo
 
 
 def test_elo_calculation():

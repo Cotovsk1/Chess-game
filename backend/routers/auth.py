@@ -1,5 +1,4 @@
 import os
-
 from datetime import timedelta, datetime, timezone
 from typing import Optional
 from jose import JWTError, jwt
@@ -8,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend import models, schemas
+from database import get_db
+import models, schemas
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:

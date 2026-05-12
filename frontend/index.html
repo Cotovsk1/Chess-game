@@ -599,7 +599,7 @@ async function startNewGame() {
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res  = await fetch(`${API_URL}/start`, {
+        const res  = await fetch(`${API_URL}/game/start`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({ level: currentLevel })
@@ -666,7 +666,7 @@ async function sendMove(move, promotion = 'q', fenBeforeMove) {
         const token = localStorage.getItem('chess_token');
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res  = await fetch(`${API_URL}/play/${currentGameId}`, {
+        const res  = await fetch(`${API_URL}/game/play/${currentGameId}`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({ move, promotion, level: currentLevel })

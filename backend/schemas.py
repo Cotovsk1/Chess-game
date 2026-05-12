@@ -30,8 +30,7 @@ class PlayerResponse(BaseModel):
     email: str
     rating: int
 
-    class Config:
-        from_attributes = True
+
 
 
 class Token(BaseModel):

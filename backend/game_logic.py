@@ -2,7 +2,6 @@ import chess
 import chess.engine
 from datetime import datetime
 from abc import ABC, abstractmethod
-from starlette.websockets import WebSocketDisconnect
 # --- 1. Патерн Команда: Інкапсуляція ходів ---
 class Command(ABC):
     @abstractmethod
@@ -37,7 +36,7 @@ class StrategyFactory:
         if strategy_type == "human":
             return HumanStrategy(kwargs.get("uci_move"))
         elif strategy_type == "stockfish":
-            return StockfishStrategy(kwargs.get("engine"), kwargs.get("level", 5))
+            return StockfishStrategy(kwargs.get("engine"), kwargs.get("level", 5), kwargs.get("lock"))
         elif strategy_type == "easy_bot":
             return RandomStrategy()
         raise ValueError(f"Unknown strategy type: {strategy_type}")
@@ -48,15 +47,14 @@ class Observer(ABC):
     async def update_state(self, message: dict):
         pass
 
-class WebSocketObserver(Observer):
-    def __init__(self, websocket):
-        self.websocket = websocket
+class CallbackObserver(Observer):
+    def __init__(self, callback):
+        self.callback = callback
 
     async def update_state(self, message: dict):
         try:
-            await self.websocket.send_json(message)
-        except (WebSocketDisconnect, RuntimeError):
-            # Сокет може бути закритим/від'єднаним під час відправлення.
+            await self.callback(message)
+        except Exception:
             pass
 
 class GameSubject:
@@ -69,12 +67,9 @@ class GameSubject:
 
     def detach(self, observer: Observer):
         for obs in self._observers:
-            if isinstance(obs, WebSocketObserver) and obs.websocket == observer:
+            if getattr(obs, 'callback', None) == observer or obs == observer:
                 self._observers.remove(obs)
                 break
-        else:
-            if observer in self._observers:
-                self._observers.remove(observer)
 
     async def notify(self, message: dict):
         for observer in self._observers:
@@ -103,16 +98,22 @@ class StockfishStrategy(MoveStrategy):
         10: {"skill": 20, "time": 1.0},
     }
 
-    def __init__(self, engine: chess.engine.UciProtocol, level: int = 5):
+    def __init__(self, engine: chess.engine.UciProtocol, level: int = 5, lock=None):
         self.engine = engine
         self.level = max(1, min(10, level))  # Обмежуємо 1-10
+        self.lock = lock
 
     async def get_move(self, board: chess.Board) -> chess.Move:
         cfg = self.LEVEL_CONFIG[self.level]
-        # Встановлюємо skill level через UCI option (асинхронно)
-        await self.engine.configure({"Skill Level": cfg["skill"]})
-        result = await self.engine.play(board, chess.engine.Limit(time=cfg["time"]))
-        return result.move
+        if self.lock:
+            async with self.lock:
+                await self.engine.configure({"Skill Level": cfg["skill"]})
+                result = await self.engine.play(board, chess.engine.Limit(time=cfg["time"]))
+                return result.move
+        else:
+            await self.engine.configure({"Skill Level": cfg["skill"]})
+            result = await self.engine.play(board, chess.engine.Limit(time=cfg["time"]))
+            return result.move
 
 # --- 2.1 Конкретна стратегія: Легкий бот (Random) ---
 class RandomStrategy(MoveStrategy):
@@ -138,9 +139,9 @@ class ChessGame(GameSubject):
         super().__init__()
         self.board = chess.Board()
         self.level = max(1, min(10, level))
-        # Для мультиплеєра: зберігаємо WebSocket об'єкти гравців
-        self.white_ws = None
-        self.black_ws = None
+        # Для мультиплеєра: зберігаємо ідентифікатори клієнтів
+        self.white_client = None
+        self.black_client = None
         self.white_player_id = None
         self.black_player_id = None
         self.db_id = db_id
@@ -183,14 +184,11 @@ class ChessGame(GameSubject):
             return True
         return False
 
-    async def make_move(self, strategy: MoveStrategy):
-        """Застарілий метод для сумісності (тимчасово)"""
-        return await self.execute_move(strategy)
 
-    def get_player_color(self, websocket) -> str | None:
-        """Повертає колір гравця за його WebSocket об'єктом"""
-        if websocket is self.white_ws:
+    def get_player_color(self, client) -> str | None:
+        """Повертає колір гравця за його ідентифікатором"""
+        if client is self.white_client:
             return "white"
-        if websocket is self.black_ws:
+        if client is self.black_client:
             return "black"
         return None

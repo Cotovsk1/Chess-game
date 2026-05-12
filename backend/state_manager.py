@@ -33,3 +33,26 @@ class ConnectionManager:
                 await connection.send_json(message)
 
 manager = ConnectionManager()
+
+import asyncio
+from datetime import datetime
+
+async def cleanup_inactive_games_loop():
+    while True:
+        try:
+            await asyncio.sleep(600)  # Перевіряти кожні 10 хвилин
+            now = datetime.now()
+            to_delete = []
+            for game_id, game in active_games.items():
+                last_activity = game.last_move_time if game.last_move_time else game.created_at
+                if (now - last_activity).total_seconds() > 3600:  # 1 година бездіяльності
+                    to_delete.append(game_id)
+            
+            for game_id in to_delete:
+                del active_games[game_id]
+                if game_id in manager.active_connections:
+                    del manager.active_connections[game_id]
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"Помилка при очищенні неактивних ігор: {e}")

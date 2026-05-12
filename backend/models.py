@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, CheckConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from backend.database import Base
+from database import Base
 
 class Player(Base):
     __tablename__ = "player"
