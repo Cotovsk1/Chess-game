@@ -137,7 +137,33 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
                 await websocket.send_json({"error": "Невалідний формат даних (очікується JSON)!"})
                 continue
                 
+            msg_type = move_data.get("type")
             uci_move = move_data.get("move")
+            
+            if msg_type == "chat":
+                message_text = move_data.get("message")
+                if message_text and user:
+                    def _save_chat():
+                        with SessionLocal() as db:
+                            chat_msg = models.ChatMessage(
+                                game_id=game.db_id,
+                                player_id=user.id,
+                                message=message_text
+                            )
+                            db.add(chat_msg)
+                            db.commit()
+                            db.refresh(chat_msg)
+                            return chat_msg.sent_at.isoformat()
+                    
+                    sent_at = await run_in_threadpool(_save_chat)
+                    chat_response = {
+                        "type": "chat",
+                        "username": user.username,
+                        "message": message_text,
+                        "sent_at": sent_at
+                    }
+                    await manager.broadcast_to_game(chat_response, game_id)
+                continue
 
             if uci_move:
                 # --- Перевірка: чи підключені обидва гравці ---
@@ -243,3 +269,47 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
                                 del active_games[g_id]
 
                 asyncio.create_task(auto_forfeit(game_id, disconnected_color))
+
+@router.websocket("/ws/chat/global")
+async def global_chat_endpoint(websocket: WebSocket, token: str = None):
+    connected = await manager.connect(websocket, "global_chat")
+    if not connected:
+        return
+
+    user = await run_in_threadpool(_get_user_from_token, token)
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                msg_data = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            
+            if msg_data.get("type") == "chat" and user:
+                message_text = msg_data.get("message")
+                if message_text:
+                    def _save_global_chat():
+                        with SessionLocal() as db:
+                            chat_msg = models.ChatMessage(
+                                game_id=None,
+                                player_id=user.id,
+                                message=message_text
+                            )
+                            db.add(chat_msg)
+                            db.commit()
+                            db.refresh(chat_msg)
+                            return chat_msg.sent_at.isoformat()
+                    
+                    sent_at = await run_in_threadpool(_save_global_chat)
+                    
+                    chat_response = {
+                        "type": "chat",
+                        "username": user.username,
+                        "message": message_text,
+                        "sent_at": sent_at
+                    }
+                    await manager.broadcast_to_game(chat_response, "global_chat")
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, "global_chat")

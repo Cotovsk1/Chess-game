@@ -87,7 +87,7 @@ class ChatMessage(Base):
     __tablename__ = "chat_message"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    game_id = Column(Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=False)
+    game_id = Column(Integer, ForeignKey("game.id", ondelete="CASCADE"), nullable=True)
     player_id = Column(Integer, ForeignKey("player.id", ondelete="CASCADE"), nullable=False)
     message = Column(Text, nullable=False)
     sent_at = Column(DateTime, server_default=func.now())
