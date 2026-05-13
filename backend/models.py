@@ -22,6 +22,9 @@ class Player(Base):
 
 class Friendship(Base):
     __tablename__ = "friendship"
+    __table_args__ = (
+        CheckConstraint("user1_id != user2_id", name="no_self_friendship"),
+    )
 
     user1_id = Column(Integer, ForeignKey("player.id", ondelete="CASCADE"), primary_key=True)
     user2_id = Column(Integer, ForeignKey("player.id", ondelete="CASCADE"), primary_key=True)

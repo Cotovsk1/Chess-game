@@ -8,7 +8,7 @@ import chess.engine
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-from routers import game, websocket, auth, chat
+from routers import game, websocket, auth, chat, friends
 from database import engine
 from models import Base
 
@@ -91,3 +91,4 @@ app.include_router(game.router, prefix="/game", tags=["game"])
 app.include_router(websocket.router, tags=["websocket"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(chat.router)
+app.include_router(friends.router, prefix="/friends", tags=["friends"])

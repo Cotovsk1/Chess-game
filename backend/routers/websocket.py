@@ -3,7 +3,7 @@ import json
 import chess
 from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from state_manager import active_games, manager
+from state_manager import active_games, manager, notification_manager
 from game_logic import CallbackObserver, StrategyFactory
 from database import SessionLocal
 import models
@@ -106,6 +106,10 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
         game.black_client = websocket
         game.black_player_id = user.id if user else None
         my_color = "black"
+
+    # Позначаємо юзера як такого, що в грі (для сповіщень)
+    if user:
+        notification_manager.set_in_game(user.id, True)
 
     await websocket.send_json({
         "type": "init", 
@@ -237,6 +241,10 @@ async def websocket_endpoint(websocket: WebSocket, game_id: str, token: str = No
             game.black_client = None
             disconnected_color = "black"
 
+        # Знімаємо прапорець "в грі"
+        if user:
+            notification_manager.set_in_game(user.id, False)
+
         game.detach(send_update)
         manager.disconnect(websocket, game_id)
 
@@ -313,3 +321,30 @@ async def global_chat_endpoint(websocket: WebSocket, token: str = None):
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, "global_chat")
+
+
+@router.websocket("/ws/notifications")
+async def notifications_endpoint(websocket: WebSocket, token: str = None):
+    """WebSocket для персональних сповіщень (запити дружби тощо)."""
+    user = await run_in_threadpool(_get_user_from_token, token)
+    if not user:
+        await websocket.accept()
+        await websocket.send_json({"error": "Необхідна авторизація"})
+        await websocket.close()
+        return
+
+    await notification_manager.connect(websocket, user.id)
+
+    try:
+        while True:
+            # Тримаємо з'єднання відкритим, очікуючи пінг/понг від клієнта
+            data = await websocket.receive_text()
+            # Клієнт може відправляти ping для підтримки з'єднання
+            try:
+                msg = json.loads(data)
+                if msg.get("type") == "ping":
+                    await websocket.send_json({"type": "pong"})
+            except json.JSONDecodeError:
+                pass
+    except WebSocketDisconnect:
+        notification_manager.disconnect(websocket, user.id)

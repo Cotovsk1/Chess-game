@@ -58,3 +58,35 @@ class ChatMessageResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class FriendRequest(BaseModel):
+    """Запит на додавання друга — по username"""
+    username: str = Field(..., min_length=1, max_length=50)
+
+
+class FriendshipResponse(BaseModel):
+    """Відповідь з інфо про дружбу"""
+    user_id: int
+    username: str
+    rating: int
+    avatar_url: str | None = None
+    status: str          # "pending" | "accepted"
+    is_incoming: bool     # True = цей запит надійшов мені; False = я його відправив
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserSearchResponse(BaseModel):
+    """Результат пошуку гравців"""
+    id: int
+    username: str
+    rating: int
+    avatar_url: str | None = None
+    is_friend: bool = False
+    has_pending_request: bool = False
+
+    class Config:
+        from_attributes = True
