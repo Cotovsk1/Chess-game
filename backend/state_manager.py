@@ -34,6 +34,56 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+
+# Менеджер сповіщень для конкретних користувачів (друзі, запити тощо)
+class NotificationManager:
+    def __init__(self):
+        # user_id -> list[WebSocket]  (один юзер може мати кілька вкладок)
+        self.user_connections: dict[int, list[WebSocket]] = {}
+        # user_id юзерів, які зараз у грі — їм не відправляємо сповіщення
+        self.users_in_game: set[int] = set()
+
+    async def connect(self, websocket: WebSocket, user_id: int):
+        await websocket.accept()
+        if user_id not in self.user_connections:
+            self.user_connections[user_id] = []
+        self.user_connections[user_id].append(websocket)
+
+    def disconnect(self, websocket: WebSocket, user_id: int):
+        if user_id in self.user_connections:
+            if websocket in self.user_connections[user_id]:
+                self.user_connections[user_id].remove(websocket)
+            if not self.user_connections[user_id]:
+                del self.user_connections[user_id]
+
+    def set_in_game(self, user_id: int, in_game: bool):
+        if in_game:
+            self.users_in_game.add(user_id)
+        else:
+            self.users_in_game.discard(user_id)
+
+    def is_online(self, user_id: int) -> bool:
+        return user_id in self.user_connections and len(self.user_connections[user_id]) > 0
+
+    async def send_to_user(self, user_id: int, message: dict, respect_game: bool = True):
+        """Надсилає сповіщення юзеру. Якщо respect_game=True — не відправляє під час гри."""
+        if respect_game and user_id in self.users_in_game:
+            return
+        if user_id in self.user_connections:
+            dead = []
+            for ws in self.user_connections[user_id]:
+                try:
+                    await ws.send_json(message)
+                except Exception:
+                    dead.append(ws)
+            for ws in dead:
+                self.user_connections[user_id].remove(ws)
+            if not self.user_connections[user_id]:
+                del self.user_connections[user_id]
+
+
+notification_manager = NotificationManager()
+
 import asyncio
 from datetime import datetime
 
