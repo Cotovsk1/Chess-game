@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime
 
 
 class MoveRequest(BaseModel):
@@ -29,6 +30,8 @@ class PlayerResponse(BaseModel):
     username: str
     email: str
     rating: int
+    avatar_url: str | None = None
+    is_active: bool = True
 
 
 
@@ -42,6 +45,16 @@ class GameResponse(BaseModel):
     board_fen: str
     status: str = "active"  
     last_move: str | None = None
+    
+    class Config:
+        from_attributes = True
+
+class ChatMessageResponse(BaseModel):
+    id: int
+    player_id: int
+    username: str
+    message: str
+    sent_at: datetime
     
     class Config:
         from_attributes = True

@@ -17,6 +17,33 @@ from starlette.concurrency import run_in_threadpool
 # Створюємо роутер
 router = APIRouter()
 
+def get_or_create_game_result(db: Session, code: str) -> int:
+    res = db.query(models.GameResult).filter_by(code=code).first()
+    if not res:
+        res = models.GameResult(code=code, description=code)
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+    return res.id
+
+def get_guest_player_id(db: Session) -> int:
+    res = db.query(models.Player).filter_by(username="Guest").first()
+    if not res:
+        res = models.Player(username="Guest", email="guest@example.com", password_hash="")
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+    return res.id
+
+def get_default_tc_id(db: Session) -> int:
+    res = db.query(models.TimeControl).first()
+    if not res:
+        res = models.TimeControl(name="Standard", initial_time_sec=600, increment_sec=0)
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+    return res.id
+
 def update_player_elo(db: Session, player_id: int, opponent_elo: int, result: float):
     if not player_id:
         return
@@ -50,7 +77,7 @@ def _game_over_response(game: ChessGame, db: Session = None) -> dict:
     if db and game.db_id:
         db_game = db.query(models.Game).filter(models.Game.id == game.db_id).first()
         if db_game:
-            db_game.result = db_result
+            db_game.result_id = get_or_create_game_result(db, db_result)
             db_game.white_player_id = game.white_player_id
             db_game.black_player_id = game.black_player_id
             db.commit()
@@ -99,9 +126,9 @@ def start_game(
 
     # Створюємо гру в БД
     db_game = models.Game(
-        result="InProgress", 
-        white_player_id=user.id if user else None,
-        time_control_id=tc_id
+        result_id=get_or_create_game_result(db, "InProgress"), 
+        white_player_id=user.id if user else get_guest_player_id(db),
+        time_control_id=tc_id if tc_id else get_default_tc_id(db)
     )
     db.add(db_game)
     db.commit()
@@ -145,9 +172,9 @@ def start_custom_game(
     game_id = str(uuid.uuid4())
 
     db_game = models.Game(
-        result="InProgress", 
-        white_player_id=user.id if user else None,
-        time_control_id=tc_id
+        result_id=get_or_create_game_result(db, "InProgress"), 
+        white_player_id=user.id if user else get_guest_player_id(db),
+        time_control_id=tc_id if tc_id else get_default_tc_id(db)
     )
     db.add(db_game)
     db.commit()
@@ -208,7 +235,7 @@ def resign_game(game_id: str, db: Session = Depends(get_db)):
         db_game = db.query(models.Game).filter(models.Game.id == game.db_id).first()
         if db_game:
             # Якщо здався живий гравець (який зазвичай грає білими проти бота)
-            db_game.result = "BlackWins"
+            db_game.result_id = get_or_create_game_result(db, "BlackWins")
             db.commit()
 
     del active_games[game_id]

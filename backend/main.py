@@ -8,7 +8,7 @@ import chess.engine
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-from routers import game, websocket, auth
+from routers import game, websocket, auth, chat
 from database import engine
 from models import Base
 
@@ -90,3 +90,4 @@ async def favicon():
 app.include_router(game.router, prefix="/game", tags=["game"])
 app.include_router(websocket.router, tags=["websocket"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(chat.router)
