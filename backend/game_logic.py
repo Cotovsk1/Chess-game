@@ -1,3 +1,4 @@
+from __future__ import annotations
 import chess
 import chess.engine
 from datetime import datetime
@@ -14,7 +15,6 @@ class Command(ABC):
 
 class MoveCommand(Command):
     def __init__(self, board: chess.Board, strategy: MoveStrategy):
-        self.game = None  # Це буде встановлено при виконанні
         self.board = board
         self.strategy = strategy
         self.move = None
@@ -36,7 +36,7 @@ class StrategyFactory:
         if strategy_type == "human":
             return HumanStrategy(kwargs.get("uci_move"))
         elif strategy_type == "stockfish":
-            return StockfishStrategy(kwargs.get("engine"), kwargs.get("level", 5), kwargs.get("lock"))
+            return StockfishStrategy(kwargs.get("engine"), kwargs.get("level", 5))
         elif strategy_type == "easy_bot":
             return RandomStrategy()
         raise ValueError(f"Unknown strategy type: {strategy_type}")
@@ -47,14 +47,15 @@ class Observer(ABC):
     async def update_state(self, message: dict):
         pass
 
-class CallbackObserver(Observer):
-    def __init__(self, callback):
-        self.callback = callback
+class WebSocketObserver(Observer):
+    def __init__(self, websocket):
+        self.websocket = websocket
 
     async def update_state(self, message: dict):
         try:
-            await self.callback(message)
+            await self.websocket.send_json(message)
         except Exception:
+            # Можна додати логування, якщо сокет закритий
             pass
 
 class GameSubject:
@@ -67,9 +68,12 @@ class GameSubject:
 
     def detach(self, observer: Observer):
         for obs in self._observers:
-            if getattr(obs, 'callback', None) == observer or obs == observer:
+            if isinstance(obs, WebSocketObserver) and obs.websocket == observer:
                 self._observers.remove(obs)
                 break
+        else:
+            if observer in self._observers:
+                self._observers.remove(observer)
 
     async def notify(self, message: dict):
         for observer in self._observers:
@@ -98,22 +102,16 @@ class StockfishStrategy(MoveStrategy):
         10: {"skill": 20, "time": 1.0},
     }
 
-    def __init__(self, engine: chess.engine.UciProtocol, level: int = 5, lock=None):
+    def __init__(self, engine: chess.engine.UciProtocol, level: int = 5):
         self.engine = engine
         self.level = max(1, min(10, level))  # Обмежуємо 1-10
-        self.lock = lock
 
     async def get_move(self, board: chess.Board) -> chess.Move:
         cfg = self.LEVEL_CONFIG[self.level]
-        if self.lock:
-            async with self.lock:
-                await self.engine.configure({"Skill Level": cfg["skill"]})
-                result = await self.engine.play(board, chess.engine.Limit(time=cfg["time"]))
-                return result.move
-        else:
-            await self.engine.configure({"Skill Level": cfg["skill"]})
-            result = await self.engine.play(board, chess.engine.Limit(time=cfg["time"]))
-            return result.move
+        # Встановлюємо skill level через UCI option (асинхронно)
+        await self.engine.configure({"Skill Level": cfg["skill"]})
+        result = await self.engine.play(board, chess.engine.Limit(time=cfg["time"]))
+        return result.move
 
 # --- 2.1 Конкретна стратегія: Легкий бот (Random) ---
 class RandomStrategy(MoveStrategy):
@@ -139,9 +137,9 @@ class ChessGame(GameSubject):
         super().__init__()
         self.board = chess.Board()
         self.level = max(1, min(10, level))
-        # Для мультиплеєра: зберігаємо ідентифікатори клієнтів
-        self.white_client = None
-        self.black_client = None
+        # Для мультиплеєра: зберігаємо WebSocket об'єкти гравців
+        self.white_ws = None
+        self.black_ws = None
         self.white_player_id = None
         self.black_player_id = None
         self.db_id = db_id
@@ -149,10 +147,10 @@ class ChessGame(GameSubject):
         self.history = []  # Список виконаних команд
 
         # Контроль часу
-        self.initial_time = float(initial_time) if initial_time is not None else None  # в секундах
-        self.increment = float(increment)
-        self.white_time = self.initial_time
-        self.black_time = self.initial_time
+        self.initial_time = initial_time  # в секундах
+        self.increment = increment
+        self.white_time = initial_time
+        self.black_time = initial_time
         self.last_move_time = None
 
     async def execute_move(self, strategy: MoveStrategy):
@@ -160,12 +158,12 @@ class ChessGame(GameSubject):
         now = datetime.now()
         if self.initial_time is not None and self.last_move_time is not None:
             elapsed = (now - self.last_move_time).total_seconds()
-            if self.board.turn == chess.WHITE and self.white_time is not None:
-                self.white_time = max(0.0, self.white_time - elapsed)
+            if self.board.turn == chess.WHITE:
+                self.white_time = max(0, self.white_time - elapsed)
                 if self.white_time > 0:
                     self.white_time += self.increment
-            elif self.black_time is not None:
-                self.black_time = max(0.0, self.black_time - elapsed)
+            else:
+                self.black_time = max(0, self.black_time - elapsed)
                 if self.black_time > 0:
                     self.black_time += self.increment
         
@@ -184,11 +182,14 @@ class ChessGame(GameSubject):
             return True
         return False
 
+    async def make_move(self, strategy: MoveStrategy):
+        """Застарілий метод для сумісності (тимчасово)"""
+        return await self.execute_move(strategy)
 
-    def get_player_color(self, client) -> str | None:
-        """Повертає колір гравця за його ідентифікатором"""
-        if client is self.white_client:
+    def get_player_color(self, websocket) -> str | None:
+        """Повертає колір гравця за його WebSocket об'єктом"""
+        if websocket is self.white_ws:
             return "white"
-        if client is self.black_client:
+        if websocket is self.black_ws:
             return "black"
         return None

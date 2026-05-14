@@ -1,3 +1,8 @@
+import os
+import sys
+
+# Додаємо кореневу директорію бекенду до sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import uuid
 import chess
@@ -6,43 +11,15 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
 from schemas import MoveRequest, CustomGameRequest, StartGameRequest
 from state_manager import active_games
-from game_logic import ChessGame, StrategyFactory
+from game_logic import ChessGame, HumanStrategy, StockfishStrategy, StrategyFactory
 from database import get_db
 from routers.auth import get_optional_user
 import models
 
 from utils import calculate_elo
-from starlette.concurrency import run_in_threadpool
 
 # Створюємо роутер
 router = APIRouter()
-
-def get_or_create_game_result(db: Session, code: str) -> int:
-    res = db.query(models.GameResult).filter_by(code=code).first()
-    if not res:
-        res = models.GameResult(code=code, description=code)
-        db.add(res)
-        db.commit()
-        db.refresh(res)
-    return res.id
-
-def get_guest_player_id(db: Session) -> int:
-    res = db.query(models.Player).filter_by(username="Guest").first()
-    if not res:
-        res = models.Player(username="Guest", email="guest@example.com", password_hash="")
-        db.add(res)
-        db.commit()
-        db.refresh(res)
-    return res.id
-
-def get_default_tc_id(db: Session) -> int:
-    res = db.query(models.TimeControl).first()
-    if not res:
-        res = models.TimeControl(name="Standard", initial_time_sec=600, increment_sec=0)
-        db.add(res)
-        db.commit()
-        db.refresh(res)
-    return res.id
 
 def update_player_elo(db: Session, player_id: int, opponent_elo: int, result: float):
     if not player_id:
@@ -77,7 +54,7 @@ def _game_over_response(game: ChessGame, db: Session = None) -> dict:
     if db and game.db_id:
         db_game = db.query(models.Game).filter(models.Game.id == game.db_id).first()
         if db_game:
-            db_game.result_id = get_or_create_game_result(db, db_result)
+            db_game.result = db_result
             db_game.white_player_id = game.white_player_id
             db_game.black_player_id = game.black_player_id
             db.commit()
@@ -126,9 +103,9 @@ def start_game(
 
     # Створюємо гру в БД
     db_game = models.Game(
-        result_id=get_or_create_game_result(db, "InProgress"), 
-        white_player_id=user.id if user else get_guest_player_id(db),
-        time_control_id=tc_id if tc_id else get_default_tc_id(db)
+        result="InProgress", 
+        white_player_id=user.id if user else None,
+        time_control_id=tc_id
     )
     db.add(db_game)
     db.commit()
@@ -172,9 +149,9 @@ def start_custom_game(
     game_id = str(uuid.uuid4())
 
     db_game = models.Game(
-        result_id=get_or_create_game_result(db, "InProgress"), 
-        white_player_id=user.id if user else get_guest_player_id(db),
-        time_control_id=tc_id if tc_id else get_default_tc_id(db)
+        result="InProgress", 
+        white_player_id=user.id if user else None,
+        time_control_id=tc_id
     )
     db.add(db_game)
     db.commit()
@@ -195,7 +172,7 @@ def start_custom_game(
         "time_control": {"initial": initial_time, "increment": increment} if initial_time else None
     }
 
-@router.get("/{game_id}")
+@router.get("/game/{game_id}")
 def get_game_state(game_id: str):
     """Отримати поточний стан гри"""
     if game_id not in active_games:
@@ -224,7 +201,7 @@ def get_game_state(game_id: str):
         "black_time": b_time
     }
 
-@router.delete("/{game_id}")
+@router.delete("/game/{game_id}")
 def resign_game(game_id: str, db: Session = Depends(get_db)):
     """Здатися / завершити гру достроково"""
     if game_id not in active_games:
@@ -235,7 +212,7 @@ def resign_game(game_id: str, db: Session = Depends(get_db)):
         db_game = db.query(models.Game).filter(models.Game.id == game.db_id).first()
         if db_game:
             # Якщо здався живий гравець (який зазвичай грає білими проти бота)
-            db_game.result_id = get_or_create_game_result(db, "BlackWins")
+            db_game.result = "BlackWins"
             db.commit()
 
     del active_games[game_id]
@@ -266,7 +243,7 @@ async def play_move(game_id: str, request: MoveRequest, http_request: Request, d
         # Використовуємо StrategyFactory та execute_move (Command)
         human_strategy = StrategyFactory.get_strategy("human", uci_move=uci_move)
         await game.execute_move(human_strategy)
-        await run_in_threadpool(record_move, db, game.db_id, uci_move, len(game.board.move_stack))
+        record_move(db, game.db_id, uci_move, len(game.board.move_stack))
     except ValueError:
         raise HTTPException(status_code=400, detail="Нелегальний хід!")
 
@@ -274,23 +251,22 @@ async def play_move(game_id: str, request: MoveRequest, http_request: Request, d
     fen_after_human = game.board.fen()
 
     if game.board.is_game_over():
-        resp = await run_in_threadpool(_game_over_response, game, db)
+        resp = _game_over_response(game, db)
         del active_games[game_id]
         return resp
 
     # Хід Stockfish з використанням синглтон-рушія
     try:
         engine = http_request.app.state.engine
-        engine_lock = getattr(http_request.app.state, "engine_lock", None)
         # Використовуємо StrategyFactory та execute_move (Command)
-        bot_strategy = StrategyFactory.get_strategy("stockfish", engine=engine, level=game.level, lock=engine_lock)
+        bot_strategy = StrategyFactory.get_strategy("stockfish", engine=engine, level=game.level)
         bot_move = await game.execute_move(bot_strategy)
-        await run_in_threadpool(record_move, db, game.db_id, bot_move.uci(), len(game.board.move_stack))
+        record_move(db, game.db_id, bot_move.uci(), len(game.board.move_stack))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Помилка рушія: {str(e)}")
 
     if game.board.is_game_over():
-        resp = await run_in_threadpool(_game_over_response, game, db)
+        resp = _game_over_response(game, db)
         resp["fen_after_human"] = fen_after_human
         resp["bot_move"] = bot_move.uci()
         del active_games[game_id]

@@ -1,14 +1,21 @@
 import os
+import sys
+
+# Додаємо кореневу директорію бекенду до sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import aiofiles  # Для асинхронного запису аватарок на диск
 from datetime import timedelta, datetime, timezone
-from typing import Optional
+from typing import Optional, List
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from database import get_db
-import models, schemas
+import models
+import schemas
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
@@ -19,7 +26,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 week
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Директорія для збереження аватарок користувачів
+UPLOAD_DIR = "static/avatars"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+# --- Допоміжні функції шифрування та токенів ---
 
 def get_password_hash(password):
     return pwd_context.hash(password)
@@ -36,6 +50,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+# --- Залежності авторизації (Get Current User) ---
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -70,6 +87,9 @@ async def get_optional_user(token: str = Depends(OAuth2PasswordBearer(tokenUrl="
     user = db.query(models.Player).filter(models.Player.username == username).first()
     return user
 
+
+# --- Ендпоінти авторизації (Вхід / Реєстрація) ---
+
 @router.post("/register", response_model=schemas.PlayerResponse)
 def register(user: schemas.PlayerCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.Player).filter(models.Player.username == user.username).first()
@@ -103,6 +123,103 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+# --- Ендпоїнти профілю та друзів ---
+
 @router.get("/me", response_model=schemas.PlayerResponse)
 def read_users_me(current_user: models.Player = Depends(get_current_user)):
+    if current_user.avatar_path:
+        current_user.avatar_url = f"/static/avatars/{os.path.basename(current_user.avatar_path)}"
+    else:
+        current_user.avatar_url = None
     return current_user
+
+
+@router.put("/update")
+async def update_profile(
+    username: Optional[str] = Form(None),
+    status_text: Optional[str] = Form(None),
+    file: UploadFile = File(None),
+    current_user: models.Player = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Оновлюємо нікнейм, якщо він переданий та відрізняється від поточного
+    if username and username != current_user.username:
+        existing_user = db.query(models.Player).filter(models.Player.username == username).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Цей нікнейм вже зайнятий")
+        current_user.username = username
+
+    # Оновлюємо статус, якщо він переданий
+    if status_text is not None:
+        current_user.status = status_text
+
+    # Обробка файлу аватару
+    if file and file.filename:
+        extension = os.path.splitext(file.filename)[1].lower()
+        if extension not in [".jpg", ".jpeg", ".png", ".webp"]:
+            raise HTTPException(status_code=400, detail="Дозволені лише формати JPG, PNG та WEBP")
+        
+        filename = f"player_{current_user.id}{extension}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+
+        async with aiofiles.open(file_path, 'wb') as out_file:
+            content = await file.read()
+            await out_file.write(content)
+
+        current_user.avatar_path = file_path
+
+    db.commit()
+    db.refresh(current_user)
+    
+    # ГЕНЕРУЄМО НОВИЙ ACCESS TOKEN НА ОСНОВІ ОНОВЛЕНОГО ІМЕНІ
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    new_access_token = create_access_token(
+        data={"sub": current_user.username}, expires_delta=access_token_expires
+    )
+    
+    avatar_url = f"/static/avatars/{os.path.basename(current_user.avatar_path)}" if current_user.avatar_path else None
+        
+    # Повертаємо комбіновану відповідь (і дані, і новий робочий токен)
+    return {
+        "status": "success",
+        "access_token": new_access_token,
+        "token_type": "bearer",
+        "username": current_user.username,
+        "status": current_user.status,
+        "avatar_url": avatar_url
+    }
+
+
+@router.get("/friends", response_model=List[schemas.PlayerShort])
+async def get_friends(current_user: models.Player = Depends(get_current_user)):
+    friends_list = []
+    for friend in current_user.friends:
+        avatar_url = f"/static/avatars/{os.path.basename(friend.avatar_path)}" if friend.avatar_path else None
+        friends_list.append({
+            "id": friend.id,
+            "username": friend.username,
+            "rating": friend.rating,
+            "status": friend.status,
+            "avatar_url": avatar_url
+        })
+    return friends_list
+
+
+@router.post("/friends/add")
+async def add_friend(friend_username: str, current_user: models.Player = Depends(get_current_user), db: Session = Depends(get_db)):
+    if friend_username == current_user.username:
+        raise HTTPException(status_code=400, detail="Ви не можете додати у друзі самого себе")
+        
+    friend = db.query(models.Player).filter(models.Player.username == friend_username).first()
+    if not friend:
+        raise HTTPException(status_code=404, detail="Користувача з таким нікнеймом не знайдено")
+        
+    if friend in current_user.friends:
+        raise HTTPException(status_code=400, detail="Цей користувач вже є у вашому списку друзів")
+        
+    current_user.friends.append(friend)
+    friend.friends.append(current_user)
+    
+    db.commit()
+    return {"message": f"Користувача {friend_username} успішно додано в друзі"}
