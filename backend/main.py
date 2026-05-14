@@ -84,10 +84,13 @@ app.mount("/avatars", StaticFiles(directory=avatars_path), name="avatars")
 def read_root():
     return {"message": "Шаховий сервер працює!"}
 
-from fastapi.responses import Response
+from fastapi.responses import Response, FileResponse
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
+    file_path = os.path.join(frontend_path, "static", "favicon.svg")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
     return Response(status_code=204)
 
 
