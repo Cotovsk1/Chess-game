@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Шахи — Профіль гравця</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            min-height: 100vh;
+            color: #f8fcfa;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .profile-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            padding-top: 50px;
+            /* ДОДАНО: Відступ зверху для всього профілю */
+        }
+
+        .btn-back {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .profile-header {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            position: relative;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            object-fit: cover;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .user-name {
+            font-size: 2.2em;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .user-status {
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 1em;
+        }
+
+        .user-meta {
+            color: #64748b;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .btn-edit {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: #a855f7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-edit:hover {
+            background: #9333ea;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .widget {
+            background: rgba(30, 41, 59, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 24px;
+        }
+
+        .widget-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .rating-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 15px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .rating-value {
+            font-size: 1.8em;
+            font-weight: 800;
+            color: #10b981;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .history-table th {
+            color: #64748b;
+            font-size: 0.85em;
+            padding-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .history-table td {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95em;
+        }
+
+        .result-badge {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85em;
+            display: inline-block;
+        }
+
+        .result-win {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .result-loss {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .result-draw {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #475569;
+        }
+
+        .friend-name {
+            font-weight: 600;
+            font-size: 0.95em;
+            flex: 1;
+        }
+
+        .friend-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .friend-status.online {
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .btn-add-friend {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #c084fc;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-add-friend:hover {
+            background: #a855f7;
+            color: #fff;
+        }
+
+        .add-friend-container {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .add-friend-input-zone {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-friend-input-zone input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            font-size: 0.9em;
+            outline: none;
+        }
+
+        .add-friend-input-zone input:focus {
+            border-color: #a855f7;
+        }
+
+        .add-friend-input-zone button {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        .add-friend-input-zone button:hover {
+            background: #059669;
+        }
+
+        .friend-link-zone {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .friend-link-title {
+            font-size: 0.8em;
+            color: #64748b;
+        }
+
+        .friend-link-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .friend-link-url {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            color: #94a3b8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .btn-copy-link {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-copy-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="profile-container">
+        <a href="/ui/menu.html?skipStart=true" class="btn-back">← Назад у меню</a>
+
+        <div class="profile-header">
+            <div class="avatar-container">
+                <img id="userAvatar" src="https://www.w3schools.com/howto/img_avatar.png" class="profile-avatar"
+                    alt="Аватар">
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="userName">Завантаження...</div>
+                <div class="user-status" id="userStatus">Граймо в шахи!</div>
+                <div class="user-meta" id="userMeta">Приєднався: щойно</div>
+            </div>
+            <button class="btn-edit" onclick="window.location.href = '/ui/edit_profile.html';">Редагувати</button>
+        </div>
+
+        <div class="profile-grid">
+            <div class="widget">
+                <div class="widget-title">⏳ Історія партій</div>
+                <div class="rating-box">
+                    <span>Поточний рейтинг:</span>
+                    <span class="rating-value" id="userRating">0 Elo</span>
+                </div>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Суперник</th>
+                            <th>Результат</th>
+                            <th>Ходів</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="4" style="color: #64748b; text-align: center; padding: 20px;">Завантаження
+                                історії...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 30px;">
+                <div class="widget">
+                    <div class="widget-title">
+                        <span id="friendsCountLabel">👥 Друзі (0)</span>
+                        <button class="btn-add-friend" onclick="toggleAddFriendZone()">+ Додати друга</button>
+                    </div>
+
+                    <div class="add-friend-container" id="addFriendBox" style="display: none;">
+                        <div class="add-friend-input-zone">
+                            <input type="text" id="friendNicknameInput" placeholder="Нікнейм гравця...">
+                            <button onclick="sendFriendRequest()">Додати</button>
+                        </div>
+                        <div class="friend-link-zone">
+                            <span class="friend-link-title">Поділіться посиланням для запрошення:</span>
+                            <div class="friend-link-row">
+                                <div class="friend-link-url" id="shareLinkValue">http://127.0.0.1:8000/invite/user</div>
+                                <button class="btn-copy-link" onclick="copyInviteLink()">Копіювати</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="friendsList">
+                        <div style="color: #64748b; text-align: center; padding: 15px; font-size: 0.9em;">Завантаження
+                            друзів...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const baseUrl = 'http://127.0.0.1:8000';
+            const token = localStorage.getItem('chess_token');
+
+            if (!token) { window.location.href = '/ui/menu.html'; return; }
+
+            function formatAvatarUrl(url) {
+                if (!url) return 'https://www.w3schools.com/howto/img_avatar.png';
+                if (url.includes('http://127.0.0.1:8000http://')) { url = url.replace('http://127.0.0.1:8000', ''); }
+                if (url.startsWith('http://') || url.startsWith('https://')) return url;
+                return baseUrl + (url.startsWith('/') ? url : '/' + url);
+            }
+
+            async function loadProfile() {
+                try {
+                    const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+
+                    if (!res.ok) {
+                        throw new Error("Неавторизовано або сесія застаріла");
+                    }
+
+                    const user = await res.json();
+
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRating').textContent = `${user.rating} Elo`;
+                    document.getElementById('userStatus').textContent = user.status || "Граймо в шахи!";
+
+                    if (user.created_at) {
+                        const date = new Date(user.created_at).toLocaleDateString('uk-UA');
+                        document.getElementById('userMeta').textContent = `Гравець з клубу · Приєднався: ${date}`;
+                    }
+
+                    document.getElementById('userAvatar').src = formatAvatarUrl(user.avatar_url);
+                    document.getElementById('shareLinkValue').textContent = `${window.location.origin}/ui/menu.html`;
+
+                    loadRealHistory();
+                    loadRealFriends();
+                } catch (err) {
+                    console.error("Помилка завантаження профілю", err);
+                    localStorage.removeItem('chess_token');
+                    window.location.href = '/ui/menu.html';
+                }
+            }
+
+            async function loadRealHistory() {
+                const body = document.getElementById('historyBody');
+                try {
+                    const res = await fetch(`${baseUrl}/games/history`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (!res.ok) throw new Error();
+                    const games = await res.json();
+
+                    if (!games || games.length === 0) {
+                        body.innerHTML = `<tr><td colspan="4" style="color: #64748b; text-align: center; padding: 30px; font-style: italic;">Історія ігор порожня</td></tr>`;
+                        return;
+                    }
+
+                    body.innerHTML = "";
+                    games.forEach(game => {
+                        let badgeClass = game.result === "win" ? "result-win" : (game.result === "loss" ? "result-loss" : "result-draw");
+                        let badgeText = game.result === "win" ? "Перемога" : (game.result === "loss" ? "Поразка" : "Нічия");
+                        body.innerHTML += `<tr><td style="font-weight:600;">${game.opponent_name}</td><td><span class="result-badge ${badgeClass}">${badgeText}</span></td><td>${game.moves_count || '—'}</td><td style="color:#64748b; font-size:0.9em;">${new Date(game.date).toLocaleDateString('uk-UA')}</td></tr>`;
+                    });
+                } catch (err) {
+                    body.innerHTML = `<tr><td colspan="4" style="color: #64748b; text-align: center; padding: 30px; font-style: italic;">Історія ігор порожня</td></tr>`;
+                }
+            }
+
+            async function loadRealFriends() {
+                const listContainer = document.getElementById('friendsList');
+                const labelCount = document.getElementById('friendsCountLabel');
+                try {
+                    const res = await fetch(`${baseUrl}/friends/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (!res.ok) throw new Error();
+                    const friends = await res.json();
+
+                    if (!friends || friends.length === 0) {
+                        labelCount.textContent = "👥 Друзі (0)";
+                        listContainer.innerHTML = `<div style="color: #64748b; text-align: center; padding: 20px; font-style: italic;">Друзів поки що 0</div>`;
+                        return;
+                    }
+
+                    labelCount.textContent = `👥 Друзі (${friends.length})`;
+                    listContainer.innerHTML = "";
+                    friends.forEach(friend => {
+                        listContainer.innerHTML += `<div class="friend-item"><img src="${formatAvatarUrl(friend.avatar_url)}" class="friend-avatar"><span class="friend-name">${friend.username}</span><span class="friend-status online"></span></div>`;
+                    });
+                } catch (err) {
+                    labelCount.textContent = "👥 Друзі (0)";
+                    listContainer.innerHTML = `<div style="color: #64748b; text-align: center; padding: 20px; font-style: italic;">Друзів поки що 0</div>`;
+                }
+            }
+
+            window.toggleAddFriendZone = function () {
+                const box = document.getElementById('addFriendBox');
+                box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+            };
+
+            window.copyInviteLink = function () {
+                navigator.clipboard.writeText(document.getElementById('shareLinkValue').textContent).then(() => alert("Посилання скопійовано!"));
+            };
+
+            window.sendFriendRequest = function () {
+                const input = document.getElementById('friendNicknameInput');
+                const nickname = input.value.trim();
+                if (!nickname) return;
+                fetch(`${baseUrl}/friends/request`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: nickname }) })
+                    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (ok) { alert(data.message || "Запит успішний!"); input.value = ""; toggleAddFriendZone(); loadRealFriends(); }
+                        else { alert(data.detail || "Гравця не знайдено."); }
+                    })
+                    .catch(() => alert("Помилка відправки."));
+            };
+
+            loadProfile();
+        })();
+    </script>
+</body>
+
+</html>

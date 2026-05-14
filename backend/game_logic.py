@@ -1,7 +1,9 @@
+from __future__ import annotations
 import chess
 import chess.engine
 from datetime import datetime
 from abc import ABC, abstractmethod
+
 # --- 1. Патерн Команда: Інкапсуляція ходів ---
 class Command(ABC):
     @abstractmethod
