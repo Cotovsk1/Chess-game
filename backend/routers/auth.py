@@ -3,9 +3,11 @@ from datetime import timedelta, datetime, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+import shutil
+import uuid as uuid_mod
 
 from database import get_db
 import models, schemas
@@ -18,6 +20,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 week
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+# Директорія для аватарів
+AVATARS_DIR = os.path.join(os.path.dirname(__file__), "..", "avatars")
+os.makedirs(AVATARS_DIR, exist_ok=True)
 
 router = APIRouter(tags=["auth"])
 
@@ -106,3 +112,54 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 @router.get("/me", response_model=schemas.PlayerResponse)
 def read_users_me(current_user: models.Player = Depends(get_current_user)):
     return current_user
+
+@router.put("/update")
+async def update_profile(
+    username: str = Form(...),
+    status_text: str = Form(""),
+    delete_avatar: str = Form(None),
+    file: UploadFile = File(None),
+    current_user: models.Player = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Оновлення профілю: нікнейм, аватар."""
+    # Перевірка на унікальність нового нікнейму
+    if username != current_user.username:
+        existing = db.query(models.Player).filter(models.Player.username == username).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Цей нікнейм вже зайнятий")
+
+    old_username = current_user.username
+    current_user.username = username
+
+    # Видалення аватара
+    if delete_avatar == "true":
+        if current_user.avatar_url:
+            old_path = os.path.join(os.path.dirname(__file__), "..", current_user.avatar_url.lstrip("/"))
+            if os.path.exists(old_path):
+                os.remove(old_path)
+            current_user.avatar_url = None
+
+    # Завантаження нового аватара
+    if file and file.filename:
+        ext = os.path.splitext(file.filename)[1] or ".png"
+        filename = f"{uuid_mod.uuid4().hex}{ext}"
+        filepath = os.path.join(AVATARS_DIR, filename)
+        with open(filepath, "wb") as buf:
+            shutil.copyfileobj(file.file, buf)
+        current_user.avatar_url = f"/avatars/{filename}"
+
+    db.commit()
+    db.refresh(current_user)
+
+    # Якщо нікнейм змінився — повертаємо новий токен
+    result = {"message": "Профіль оновлено"}
+    if username != old_username:
+        access_token = create_access_token(
+            data={"sub": current_user.username},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        )
+        result["access_token"] = access_token
+
+    return result
+

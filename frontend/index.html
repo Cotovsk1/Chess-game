@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <title>Шахи — Гра проти бота</title>
@@ -8,7 +9,11 @@
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -32,6 +37,7 @@
             top: 0;
             z-index: 100;
         }
+
         header a {
             color: #94a3b8;
             text-decoration: none;
@@ -43,10 +49,20 @@
             transition: all 0.2s;
             padding: 8px 16px;
             border-radius: 8px;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
         }
-        header a:hover { color: #fff; background: rgba(255,255,255,0.08); }
-        header h1 { font-size: 1.25em; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
+
+        header a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        header h1 {
+            font-size: 1.25em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
 
         /* ── LAYOUT ── */
         .game-layout {
@@ -64,7 +80,11 @@
                 grid-template-columns: 1fr;
                 justify-items: center;
             }
-            .left-panel, .right-panel { width: 440px; }
+
+            .left-panel,
+            .right-panel {
+                width: 440px;
+            }
         }
 
         /* ── LEFT PANEL ── */
@@ -112,7 +132,13 @@
             align-items: center;
             justify-content: center;
         }
-        .lvl-btn:hover { background: rgba(16, 185, 129, 0.1); border-color: #10b981; color: #10b981; }
+
+        .lvl-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
         .lvl-btn.active {
             background: #10b981;
             border-color: #10b981;
@@ -147,10 +173,30 @@
             justify-content: center;
             gap: 8px;
         }
-        .btn-start  { background: #2563eb; color: #fff; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); }
-        .btn-start:hover  { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
-        .btn-resign { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); display: none; }
-        .btn-resign:hover { background: rgba(239, 68, 68, 0.2); color: #fff; }
+
+        .btn-start {
+            background: #2563eb;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-start:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-resign {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            display: none;
+        }
+
+        .btn-resign:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fff;
+        }
 
         /* Captured pieces */
         .captured-row {
@@ -161,7 +207,7 @@
             font-size: 1.6em;
             line-height: 1;
             padding: 8px;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
 
@@ -185,10 +231,25 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s;
         }
-        .player-tag .icon { font-size: 1.6em; filter: drop-shadow(0 0 8px rgba(0,0,0,0.3)); }
-        .player-tag .name { font-weight: 600; font-size: 1em; color: #f1f5f9; }
-        .player-tag .tag-info { font-size: 0.85em; color: #94a3b8; margin-left: auto; font-family: monospace; }
-        
+
+        .player-tag .icon {
+            font-size: 1.6em;
+            filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .player-tag .name {
+            font-weight: 600;
+            font-size: 1em;
+            color: #f1f5f9;
+        }
+
+        .player-tag .tag-info {
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-left: auto;
+            font-family: monospace;
+        }
+
         .player-tag.active-turn {
             border-color: rgba(37, 99, 235, 0.5);
             background: rgba(37, 99, 235, 0.08);
@@ -199,7 +260,7 @@
             width: 500px;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             border: 4px solid #1e293b;
         }
 
@@ -214,18 +275,52 @@
             background: rgba(30, 41, 59, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        #status.thinking { background: rgba(37, 99, 235, 0.15); border-color: #3b82f6; color: #93c5fd; }
-        #status.check    { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #fca5a5; animation: pulse-red 2s infinite; }
-        #status.win      { background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #6ee7b7; }
-        #status.lose     { background: rgba(239, 68, 68, 0.15); border-color: #f97316; color: #fdba74; }
-        #status.draw     { background: rgba(100, 116, 139, 0.15); border-color: #94a3b8; color: #cbd5e1; }
+
+        #status.thinking {
+            background: rgba(37, 99, 235, 0.15);
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        #status.check {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+            color: #fca5a5;
+            animation: pulse-red 2s infinite;
+        }
+
+        #status.win {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            color: #6ee7b7;
+        }
+
+        #status.lose {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #f97316;
+            color: #fdba74;
+        }
+
+        #status.draw {
+            background: rgba(100, 116, 139, 0.15);
+            border-color: #94a3b8;
+            color: #cbd5e1;
+        }
 
         @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
         }
 
         /* ── RIGHT PANEL — move history ── */
@@ -241,10 +336,23 @@
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-size: 0.9em;
         }
-        .move-list::-webkit-scrollbar { width: 6px; }
-        .move-list::-webkit-scrollbar-track { background: transparent; }
-        .move-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
-        .move-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
+
+        .move-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .move-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .move-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .move-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
 
         .move-row {
             display: grid;
@@ -255,44 +363,87 @@
             margin-bottom: 2px;
             transition: background 0.2s;
         }
-        .move-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
-        .move-row:hover { background: rgba(255,255,255,0.05); }
-        .move-num { color: #475569; font-weight: 600; }
-        .move-cell { color: #cbd5e1; cursor: pointer; border-radius: 4px; padding: 2px 6px; }
-        .move-cell.bot { color: #93c5fd; }
-        .move-cell.last { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; font-weight: 700; }
+
+        .move-row:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .move-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .move-num {
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .move-cell {
+            color: #cbd5e1;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+
+        .move-cell.bot {
+            color: #93c5fd;
+        }
+
+        .move-cell.last {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            font-weight: 700;
+        }
 
         /* ── HIGHLIGHT ── */
-        .highlight-last { background: rgba(255, 255, 0, 0.4) !important; box-shadow: inset 0 0 4px rgba(0,0,0,0.2); }
-        .highlight-check { background: rgba(239, 68, 68, 0.6) !important; }
+        .highlight-last {
+            background: rgba(255, 255, 0, 0.4) !important;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .highlight-check {
+            background: rgba(239, 68, 68, 0.6) !important;
+        }
 
         /* Custom board pieces (Beautiful contrast for dark theme) */
-        .square-55d63 { 
-            background-color: #334155 !important; /* Deep Slate */
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); /* Більш чітка рамка */
+        .square-55d63 {
+            background-color: #334155 !important;
+            /* Deep Slate */
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+            /* Більш чітка рамка */
         }
-        .square-2b130 { 
-            background-color: #94a3b8 !important; /* Lighter Slate */
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25); /* Більш чітка рамка */
+
+        .square-2b130 {
+            background-color: #94a3b8 !important;
+            /* Lighter Slate */
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+            /* Більш чітка рамка */
         }
-        
+
         /* Coordinate labels color adjustment for better visibility */
-        .notation-322f9 { color: #f1f5f9 !important; opacity: 0.5; }
-        
+        .notation-322f9 {
+            color: #f1f5f9 !important;
+            opacity: 0.5;
+        }
+
         .highlight-hint {
             position: relative;
         }
+
         .highlight-hint::after {
             content: "";
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            width: 35%; height: 35%;
+            width: 35%;
+            height: 35%;
             background: rgba(0, 0, 0, 0.15);
             border-radius: 50%;
         }
+
         .highlight-hint.is-capture::after {
-            width: 80%; height: 80%;
+            width: 80%;
+            height: 80%;
             background: transparent;
             border: 4px solid rgba(0, 0, 0, 0.1);
         }
@@ -300,525 +451,545 @@
         /* ── PROMOTION MODAL ── */
         #promotionModal {
             display: none;
-            position: fixed; inset: 0;
+            position: fixed;
+            inset: 0;
             background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
-        #promotionModal.open { display: flex; }
+
+        #promotionModal.open {
+            display: flex;
+        }
+
         .promo-box {
             background: #1e293b;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 24px;
             padding: 40px;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-        .promo-box h3 { margin: 0 0 24px; font-size: 1.1em; color: #94a3b8; font-weight: 600; }
-        .promo-pieces { display: flex; gap: 16px; justify-content: center; }
+
+        .promo-box h3 {
+            margin: 0 0 24px;
+            font-size: 1.1em;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .promo-pieces {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
         .promo-piece {
             font-size: 64px;
             cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
             padding: 12px 20px;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             line-height: 1;
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
         }
-        .promo-piece:hover { 
-            border-color: #10b981; 
-            transform: translateY(-5px); 
+
+        .promo-piece:hover {
+            border-color: #10b981;
+            transform: translateY(-5px);
             background: rgba(16, 185, 129, 0.1);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
+
 <body>
 
-<header>
-    <a href="/ui/menu.html">← Меню</a>
-    <h1>♟ Гра проти Stockfish</h1>
-    <span id="levelBadge" style="font-size:0.85em;color:#68d391;font-weight:600;"></span>
-    <span id="userBadge" style="font-size:0.85em;color:#90cdf4;font-weight:600;"></span>
-</header>
+    <header>
+        <a href="/ui/menu.html">← Меню</a>
+        <h1>♟ Гра проти Stockfish</h1>
+        <span id="levelBadge" style="font-size:0.85em;color:#68d391;font-weight:600;"></span>
+        <span id="userBadge" style="font-size:0.85em;color:#90cdf4;font-weight:600;"></span>
+    </header>
 
-<div class="game-layout">
+    <div class="game-layout">
 
-    <!-- ── LEFT PANEL ── -->
-    <div class="left-panel">
+        <!-- ── LEFT PANEL ── -->
+        <div class="left-panel">
 
-        <!-- Вибір рівня -->
-        <div class="panel-card">
-            <h3>Рівень складності</h3>
-            <div class="level-grid" id="levelGrid"></div>
-            <div class="level-label" id="levelName"></div>
-        </div>
-
-        <!-- Кнопки дій -->
-        <div class="panel-card" style="display:flex;flex-direction:column;gap:12px;">
-            <h3>Дії</h3>
-            <button class="action-btn btn-start"  onclick="startNewGame()"><span>▶</span> Нова гра</button>
-            <button class="action-btn btn-resign" id="resignBtn" onclick="resignGame()"><span>⚑</span> Здатися</button>
-        </div>
-
-        <!-- Захоплені фігури бота -->
-        <div class="panel-card">
-            <h3>Захоплено ботом</h3>
-            <div class="captured-row" id="capturedByBot"></div>
-        </div>
-
-        <!-- Захоплені фігури гравця -->
-        <div class="panel-card">
-            <h3>Захоплено вами</h3>
-            <div class="captured-row" id="capturedByHuman"></div>
-        </div>
-    </div>
-
-    <!-- ── BOARD ── -->
-    <div class="board-area">
-        <!-- Бот (чорні) -->
-        <div class="player-tag" id="tagBot">
-            <span class="icon">🤖</span>
-            <div>
-                <div class="name">Stockfish</div>
+            <!-- Вибір рівня -->
+            <div class="panel-card">
+                <h3>Рівень складності</h3>
+                <div class="level-grid" id="levelGrid"></div>
+                <div class="level-label" id="levelName"></div>
             </div>
-            <span class="tag-info" id="botTagInfo"></span>
-        </div>
 
-        <div id="myBoard"></div>
-
-        <!-- Гравець (білі) -->
-        <div class="player-tag active-turn" id="tagHuman">
-            <span class="icon">👤</span>
-            <div>
-                <div class="name">Ви (Білі)</div>
+            <!-- Кнопки дій -->
+            <div class="panel-card" style="display:flex;flex-direction:column;gap:12px;">
+                <h3>Дії</h3>
+                <button class="action-btn btn-start" onclick="startNewGame()"><span>▶</span> Нова гра</button>
+                <button class="action-btn btn-resign" id="resignBtn" onclick="resignGame()"><span>⚑</span>
+                    Здатися</button>
             </div>
-            <span class="tag-info">♙</span>
+
+            <!-- Захоплені фігури бота -->
+            <div class="panel-card">
+                <h3>Захоплено ботом</h3>
+                <div class="captured-row" id="capturedByBot"></div>
+            </div>
+
+            <!-- Захоплені фігури гравця -->
+            <div class="panel-card">
+                <h3>Захоплено вами</h3>
+                <div class="captured-row" id="capturedByHuman"></div>
+            </div>
         </div>
 
-        <div id="status">Вибери рівень і натисни «Нова гра»</div>
+        <!-- ── BOARD ── -->
+        <div class="board-area">
+            <!-- Бот (чорні) -->
+            <div class="player-tag" id="tagBot">
+                <span class="icon">🤖</span>
+                <div>
+                    <div class="name">Stockfish</div>
+                </div>
+                <span class="tag-info" id="botTagInfo"></span>
+            </div>
+
+            <div id="myBoard"></div>
+
+            <!-- Гравець (білі) -->
+            <div class="player-tag active-turn" id="tagHuman">
+                <span class="icon">👤</span>
+                <div>
+                    <div class="name">Ви (Білі)</div>
+                </div>
+                <span class="tag-info">♙</span>
+            </div>
+
+            <div id="status">Вибери рівень і натисни «Нова гра»</div>
+        </div>
+
+        <!-- ── RIGHT PANEL ── -->
+        <div class="right-panel">
+            <div class="panel-card" style="flex:1;">
+                <h3>Історія ходів</h3>
+                <div class="move-list" id="moveList"></div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- ── RIGHT PANEL ── -->
-    <div class="right-panel">
-        <div class="panel-card" style="flex:1;">
-            <h3>Історія ходів</h3>
-            <div class="move-list" id="moveList"></div>
+    <!-- Промоція -->
+    <div id="promotionModal">
+        <div class="promo-box">
+            <h3>Виберіть фігуру для промоції</h3>
+            <div class="promo-pieces">
+                <span class="promo-piece" onclick="choosePromotion('q')" title="Ферзь">♛</span>
+                <span class="promo-piece" onclick="choosePromotion('r')" title="Тура">♜</span>
+                <span class="promo-piece" onclick="choosePromotion('b')" title="Слон">♝</span>
+                <span class="promo-piece" onclick="choosePromotion('n')" title="Кінь">♞</span>
+            </div>
         </div>
     </div>
 
-</div>
+    <script>
+        // Автовизначення URL — працює і на localhost і через devtunnels/ngrok
+        const API_URL = location.protocol === 'file:'
+            ? 'http://127.0.0.1:8000'
+            : `${location.protocol}//${location.host}`;
 
-<!-- Промоція -->
-<div id="promotionModal">
-    <div class="promo-box">
-        <h3>Виберіть фігуру для промоції</h3>
-        <div class="promo-pieces">
-            <span class="promo-piece" onclick="choosePromotion('q')" title="Ферзь">♛</span>
-            <span class="promo-piece" onclick="choosePromotion('r')" title="Тура">♜</span>
-            <span class="promo-piece" onclick="choosePromotion('b')" title="Слон">♝</span>
-            <span class="promo-piece" onclick="choosePromotion('n')" title="Кінь">♞</span>
-        </div>
-    </div>
-</div>
+        // ── Auth badge ──
+        async function checkMe() {
+            const badge = document.getElementById('userBadge');
+            const token = localStorage.getItem('chess_token');
+            if (!badge) return;
+            if (!token) {
+                badge.textContent = 'Гість';
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error();
+                const me = await res.json();
+                badge.textContent = `${me.username} · Elo ${me.rating}`;
+            } catch (_) {
+                badge.textContent = 'Гість';
+            }
+        }
 
-<script>
-// Автовизначення URL — працює і на localhost і через devtunnels/ngrok
-const API_URL = location.protocol === 'file:'
-    ? 'http://127.0.0.1:8000'
-    : `${location.protocol}//${location.host}`;
+        // ── State ──
+        let board = null;
+        let game = null; // Будемо використовувати для легальних ходів
+        let currentGameId = null;
+        let currentLevel = 5;
+        let waitingForBot = false;
+        let pendingPromoMove = null;
+        let pendingPromoFen = null;
+        let lastHighlightedSquares = [];
+        let moveHistory = [];   // [{human, bot}]
+        let capturedByBot = [];
+        let capturedByHuman = [];
 
-// ── Auth badge ──
-async function checkMe() {
-    const badge = document.getElementById('userBadge');
-    const token = localStorage.getItem('chess_token');
-    if (!badge) return;
-    if (!token) {
-        badge.textContent = 'Гість';
-        return;
-    }
-    try {
-        const res = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!res.ok) throw new Error();
-        const me = await res.json();
-        badge.textContent = `${me.username} · Elo ${me.rating}`;
-    } catch (_) {
-        badge.textContent = 'Гість';
-    }
-}
+        // Додаємо скрипт chess.js для підсвічування ходів
+        const chessScript = document.createElement('script');
+        chessScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js';
+        document.head.appendChild(chessScript);
 
-// ── State ──
-let board = null;
-let game = null; // Будемо використовувати для легальних ходів
-let currentGameId   = null;
-let currentLevel    = 5;
-let waitingForBot   = false;
-let pendingPromoMove = null;
-let pendingPromoFen  = null;
-let lastHighlightedSquares = [];
-let moveHistory     = [];   // [{human, bot}]
-let capturedByBot   = [];
-let capturedByHuman = [];
+        chessScript.onload = () => {
+            game = new Chess();
+        };
 
-// Додаємо скрипт chess.js для підсвічування ходів
-const chessScript = document.createElement('script');
-chessScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js';
-document.head.appendChild(chessScript);
+        // ── Level config ──
+        const LEVEL_NAMES = {
+            1: '🌱 Новачок',
+            2: '🐣 Початківець',
+            3: '📗 Легкий',
+            4: '🎯 Нижче середнього',
+            5: '⚖️ Середній',
+            6: '🔥 Вище середнього',
+            7: '💪 Складний',
+            8: '🏆 Експерт',
+            9: '⚡ Майстер',
+            10: '💀 Гросмейстер',
+        };
 
-chessScript.onload = () => {
-    game = new Chess();
-};
+        // ── Build level buttons ──
+        function buildLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'lvl-btn' + (i === currentLevel ? ' active' : '');
+                btn.textContent = i;
+                btn.title = LEVEL_NAMES[i];
+                btn.onclick = () => selectLevel(i);
+                grid.appendChild(btn);
+            }
+            document.getElementById('levelName').textContent = LEVEL_NAMES[currentLevel];
+            document.getElementById('levelBadge').textContent = `Рівень ${currentLevel}`;
+            document.getElementById('botTagInfo').textContent = LEVEL_NAMES[currentLevel];
+        }
 
-// ── Level config ──
-const LEVEL_NAMES = {
-    1: '🌱 Новачок',
-    2: '🐣 Початківець',
-    3: '📗 Легкий',
-    4: '🎯 Нижче середнього',
-    5: '⚖️ Середній',
-    6: '🔥 Вище середнього',
-    7: '💪 Складний',
-    8: '🏆 Експерт',
-    9: '⚡ Майстер',
-    10: '💀 Гросмейстер',
-};
+        function selectLevel(n) {
+            currentLevel = n;
+            buildLevelGrid();
+            // Якщо гра ще не почалась — просто оновлюємо вибір
+            // Якщо гра вже йде — нічого не перезапускаємо
+        }
 
-// ── Build level buttons ──
-function buildLevelGrid() {
-    const grid = document.getElementById('levelGrid');
-    grid.innerHTML = '';
-    for (let i = 1; i <= 10; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'lvl-btn' + (i === currentLevel ? ' active' : '');
-        btn.textContent = i;
-        btn.title = LEVEL_NAMES[i];
-        btn.onclick = () => selectLevel(i);
-        grid.appendChild(btn);
-    }
-    document.getElementById('levelName').textContent = LEVEL_NAMES[currentLevel];
-    document.getElementById('levelBadge').textContent = `Рівень ${currentLevel}`;
-    document.getElementById('botTagInfo').textContent = LEVEL_NAMES[currentLevel];
-}
+        // ── Status helpers ──
+        function setStatus(text, cls = '') {
+            const el = document.getElementById('status');
+            el.textContent = text;
+            el.className = cls;
+        }
 
-function selectLevel(n) {
-    currentLevel = n;
-    buildLevelGrid();
-    // Якщо гра ще не почалась — просто оновлюємо вибір
-    // Якщо гра вже йде — нічого не перезапускаємо
-}
+        function setTurnIndicator(isHumanTurn) {
+            document.getElementById('tagHuman').classList.toggle('active-turn', isHumanTurn);
+            document.getElementById('tagBot').classList.toggle('active-turn', !isHumanTurn);
+        }
 
-// ── Status helpers ──
-function setStatus(text, cls = '') {
-    const el = document.getElementById('status');
-    el.textContent = text;
-    el.className = cls;
-}
+        // ── Highlight ──
+        function highlightLastMove(uciMove) {
+            lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
+            lastHighlightedSquares = [];
+            if (!uciMove || uciMove.length < 4) return;
+            const from = uciMove.slice(0, 2), to = uciMove.slice(2, 4);
+            $(`#myBoard .square-${from}, #myBoard .square-${to}`).addClass('highlight-last');
+            lastHighlightedSquares = [from, to];
+        }
 
-function setTurnIndicator(isHumanTurn) {
-    document.getElementById('tagHuman').classList.toggle('active-turn', isHumanTurn);
-    document.getElementById('tagBot').classList.toggle('active-turn', !isHumanTurn);
-}
+        function clearHighlights() {
+            lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
+            lastHighlightedSquares = [];
+        }
 
-// ── Highlight ──
-function highlightLastMove(uciMove) {
-    lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
-    lastHighlightedSquares = [];
-    if (!uciMove || uciMove.length < 4) return;
-    const from = uciMove.slice(0, 2), to = uciMove.slice(2, 4);
-    $(`#myBoard .square-${from}, #myBoard .square-${to}`).addClass('highlight-last');
-    lastHighlightedSquares = [from, to];
-}
+        // ── Move history ──
+        function addMoveToHistory(humanMove, botMove) {
+            moveHistory.push({ human: humanMove, bot: botMove || '' });
+            renderMoveHistory();
+        }
 
-function clearHighlights() {
-    lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
-    lastHighlightedSquares = [];
-}
-
-// ── Move history ──
-function addMoveToHistory(humanMove, botMove) {
-    moveHistory.push({ human: humanMove, bot: botMove || '' });
-    renderMoveHistory();
-}
-
-function renderMoveHistory() {
-    const list = document.getElementById('moveList');
-    list.innerHTML = '';
-    moveHistory.forEach((m, i) => {
-        const row = document.createElement('div');
-        row.className = 'move-row';
-        const isLast = i === moveHistory.length - 1;
-        row.innerHTML = `
+        function renderMoveHistory() {
+            const list = document.getElementById('moveList');
+            list.innerHTML = '';
+            moveHistory.forEach((m, i) => {
+                const row = document.createElement('div');
+                row.className = 'move-row';
+                const isLast = i === moveHistory.length - 1;
+                row.innerHTML = `
             <span class="move-num">${i + 1}.</span>
             <span class="move-cell ${isLast ? 'last' : ''}">${m.human}</span>
             <span class="move-cell bot ${isLast && m.bot ? 'last' : ''}">${m.bot}</span>`;
-        list.appendChild(row);
-    });
-    list.scrollTop = list.scrollHeight;
-}
-
-// ── Captured pieces ──
-const PIECE_SYMBOLS = {
-    'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕',
-    'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛',
-};
-
-function computeCaptured(fenBefore, fenAfter) {
-    const countPieces = fen => {
-        const counts = {};
-        fen.split(' ')[0].split('/').join('').split('').forEach(c => {
-            if (/[pnbrqkPNBRQK]/.test(c)) counts[c] = (counts[c] || 0) + 1;
-        });
-        return counts;
-    };
-    const before = countPieces(fenBefore);
-    const after  = countPieces(fenAfter);
-    const captured = [];
-    for (const [piece, cnt] of Object.entries(before)) {
-        const diff = cnt - (after[piece] || 0);
-        for (let i = 0; i < diff; i++) captured.push(piece);
-    }
-    return captured;
-}
-
-function renderCaptured(arr, elId) {
-    const el = document.getElementById(elId);
-    el.textContent = arr.map(p => PIECE_SYMBOLS[p] || p).join(' ');
-}
-
-// ── Start game ──
-async function startNewGame() {
-    try {
-        if (currentGameId) {
-            await fetch(`${API_URL}/game/${currentGameId}`, { method: 'DELETE' }).catch(() => {});
+                list.appendChild(row);
+            });
+            list.scrollTop = list.scrollHeight;
         }
 
-        const token = localStorage.getItem('chess_token');
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        // ── Captured pieces ──
+        const PIECE_SYMBOLS = {
+            'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕',
+            'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛',
+        };
 
-        const res  = await fetch(`${API_URL}/game/start`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ level: currentLevel })
-        });
-        const data = await res.json();
-        currentGameId = data.game_id;
-        waitingForBot = false;
-        moveHistory   = [];
-        capturedByBot = [];
-        capturedByHuman = [];
-        if (game) game.reset();
-        renderMoveHistory();
-        renderCaptured([], 'capturedByBot');
-        renderCaptured([], 'capturedByHuman');
-        clearHighlights();
-        board.start();
-        setStatus('Твій хід! (Білі)', '');
-        if (!token) {
-            const el = document.getElementById('status');
-            el.textContent += ' · Гість: рейтинг не оновиться';
-        }
-        setTurnIndicator(true);
-        document.getElementById('resignBtn').style.display = 'block';
-        document.getElementById('botTagInfo').textContent = LEVEL_NAMES[currentLevel];
-        document.getElementById('levelBadge').textContent = `Рівень ${currentLevel}`;
-        checkMe();
-    } catch (e) {
-        setStatus("❌ Помилка підключення до сервера", 'check');
-    }
-}
-
-// ── Resign ──
-async function resignGame() {
-    if (!currentGameId) return;
-    if (!confirm('Ви впевнені, що хочете здатися?')) return;
-    await fetch(`${API_URL}/game/${currentGameId}`, { method: 'DELETE' }).catch(() => {});
-    currentGameId = null;
-    waitingForBot = false;
-    board.start();
-    clearHighlights();
-    setStatus('Ви здалися. Натисни «Нова гра».', 'draw');
-    setTurnIndicator(false);
-    document.getElementById('resignBtn').style.display = 'none';
-}
-
-// ── Promotion ──
-async function choosePromotion(piece) {
-    document.getElementById('promotionModal').classList.remove('open');
-    if (!pendingPromoMove) return;
-    const move = pendingPromoMove, fen = pendingPromoFen;
-    pendingPromoMove = pendingPromoFen = null;
-    await sendMove(move, piece, fen);
-}
-
-// ── Send move ──
-async function sendMove(move, promotion = 'q', fenBeforeMove) {
-    waitingForBot = true;
-    setStatus('🤖 Stockfish думає...', 'thinking');
-    setTurnIndicator(false);
-
-    const startFen = fenBeforeMove || board.fen();
-
-    try {
-        const token = localStorage.getItem('chess_token');
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res  = await fetch(`${API_URL}/game/play/${currentGameId}`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ move, promotion, level: currentLevel })
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-            setStatus('❌ Нелегальний хід! Спробуй ще раз.', 'check');
-            board.position(startFen);
-            waitingForBot = false;
-            setTurnIndicator(true);
-            return;
-        }
-
-        // Крок 1 — показуємо хід гравця
-        if (data.fen_after_human) {
-            board.position(data.fen_after_human);
-            if (game) game.load(data.fen_after_human);
-            // Оновлюємо захоплені фігури гравцем
-            const newCaps = computeCaptured(startFen, data.fen_after_human);
-            capturedByHuman.push(...newCaps.filter(p => p === p.toLowerCase())); // чорні
-            renderCaptured(capturedByHuman, 'capturedByHuman');
-        }
-
-        if (data.status === 'game_over' && !data.bot_move) {
-            // Гравець поставив мат/пат
-            board.position(data.fen);
-            if (game) game.load(data.fen);
-            finishGame(data);
-            waitingForBot = false;
-            return;
-        }
-
-        // Крок 2 — через 600мс показуємо хід бота
-        setTimeout(() => {
-            board.position(data.fen);
-            if (game) game.load(data.fen);
-            if (data.bot_move) {
-                // Оновлюємо захоплені фігури ботом
-                const botCaps = computeCaptured(data.fen_after_human || startFen, data.fen);
-                capturedByBot.push(...botCaps.filter(p => p === p.toUpperCase())); // білі
-                renderCaptured(capturedByBot, 'capturedByBot');
-
-                setTimeout(() => highlightLastMove(data.bot_move), 300);
+        function computeCaptured(fenBefore, fenAfter) {
+            const countPieces = fen => {
+                const counts = {};
+                fen.split(' ')[0].split('/').join('').split('').forEach(c => {
+                    if (/[pnbrqkPNBRQK]/.test(c)) counts[c] = (counts[c] || 0) + 1;
+                });
+                return counts;
+            };
+            const before = countPieces(fenBefore);
+            const after = countPieces(fenAfter);
+            const captured = [];
+            for (const [piece, cnt] of Object.entries(before)) {
+                const diff = cnt - (after[piece] || 0);
+                for (let i = 0; i < diff; i++) captured.push(piece);
             }
+            return captured;
+        }
 
-            // Додаємо в історію ходів
-            addMoveToHistory(move, data.bot_move || '');
+        function renderCaptured(arr, elId) {
+            const el = document.getElementById(elId);
+            el.textContent = arr.map(p => PIECE_SYMBOLS[p] || p).join(' ');
+        }
 
-            if (data.status === 'game_over') {
-                finishGame(data);
-            } else {
-                setTurnIndicator(true);
-                if (data.is_check) {
-                    setStatus('⚠️ ШАХ! Твій хід!', 'check');
-                } else {
-                    setStatus('Твій хід!', '');
+        // ── Start game ──
+        async function startNewGame() {
+            try {
+                if (currentGameId) {
+                    await fetch(`${API_URL}/game/${currentGameId}`, { method: 'DELETE' }).catch(() => { });
                 }
+
+                const token = localStorage.getItem('chess_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                const res = await fetch(`${API_URL}/game/start`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ level: currentLevel })
+                });
+                const data = await res.json();
+                currentGameId = data.game_id;
+                waitingForBot = false;
+                moveHistory = [];
+                capturedByBot = [];
+                capturedByHuman = [];
+                if (game) game.reset();
+                renderMoveHistory();
+                renderCaptured([], 'capturedByBot');
+                renderCaptured([], 'capturedByHuman');
+                clearHighlights();
+                board.start();
+                setStatus('Твій хід! (Білі)', '');
+                if (!token) {
+                    const el = document.getElementById('status');
+                    el.textContent += ' · Гість: рейтинг не оновиться';
+                }
+                setTurnIndicator(true);
+                document.getElementById('resignBtn').style.display = 'block';
+                document.getElementById('botTagInfo').textContent = LEVEL_NAMES[currentLevel];
+                document.getElementById('levelBadge').textContent = `Рівень ${currentLevel}`;
+                checkMe();
+            } catch (e) {
+                setStatus("❌ Помилка підключення до сервера", 'check');
             }
+        }
+
+        // ── Resign ──
+        async function resignGame() {
+            if (!currentGameId) return;
+            if (!confirm('Ви впевнені, що хочете здатися?')) return;
+            await fetch(`${API_URL}/game/${currentGameId}`, { method: 'DELETE' }).catch(() => { });
+            currentGameId = null;
             waitingForBot = false;
-        }, 600);
+            board.start();
+            clearHighlights();
+            setStatus('Ви здалися. Натисни «Нова гра».', 'draw');
+            setTurnIndicator(false);
+            document.getElementById('resignBtn').style.display = 'none';
+        }
 
-    } catch (e) {
-        console.error(e);
-        setStatus('❌ Помилка сервера!', 'check');
-        board.position(startFen);
-        waitingForBot = false;
-        setTurnIndicator(true);
-    }
-}
+        // ── Promotion ──
+        async function choosePromotion(piece) {
+            document.getElementById('promotionModal').classList.remove('open');
+            if (!pendingPromoMove) return;
+            const move = pendingPromoMove, fen = pendingPromoFen;
+            pendingPromoMove = pendingPromoFen = null;
+            await sendMove(move, piece, fen);
+        }
 
-function finishGame(data) {
-    let msg = '', cls = '';
-    if (data.result === '1-0')      { msg = '🏆 Ви перемогли!'; cls = 'win'; }
-    else if (data.result === '0-1') { msg = '🤖 Stockfish переміг!'; cls = 'lose'; }
-    else                            { msg = '🤝 Нічия!'; cls = 'draw'; }
-    if (data.is_check) msg = '♚ МАТ! ' + msg;
-    setStatus(msg, cls);
-    setTurnIndicator(false);
-    currentGameId = null;
-    document.getElementById('resignBtn').style.display = 'none';
-}
+        // ── Send move ──
+        async function sendMove(move, promotion = 'q', fenBeforeMove) {
+            waitingForBot = true;
+            setStatus('🤖 Stockfish думає...', 'thinking');
+            setTurnIndicator(false);
 
-// ── onDragStart ──
-function onDragStart(source, piece, position, orientation) {
-    if (waitingForBot || !currentGameId) return false;
-    if (piece.search(/^b/) !== -1) return false; // Гравцю можна тягати тільки білі
+            const startFen = fenBeforeMove || board.fen();
 
-    if (game) {
-        const moves = game.moves({
-            square: source,
-            verbose: true
-        });
-        if (moves.length === 0) return;
+            try {
+                const token = localStorage.getItem('chess_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const res = await fetch(`${API_URL}/game/play/${currentGameId}`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ move, promotion, level: currentLevel })
+                });
+                const data = await res.json();
 
-        moves.forEach(m => {
-            const isCapture = m.flags.includes('c') || m.flags.includes('e');
-            $(`#myBoard .square-${m.to}`).addClass('highlight-hint' + (isCapture ? ' is-capture' : ''));
-        });
-    }
-}
+                if (!res.ok) {
+                    setStatus('❌ Нелегальний хід! Спробуй ще раз.', 'check');
+                    board.position(startFen);
+                    waitingForBot = false;
+                    setTurnIndicator(true);
+                    return;
+                }
 
-// ── onDrop ──
-function onDrop(source, target, piece) {
-    $(`#myBoard .square-55d63, #myBoard .square-2b130`).removeClass('highlight-hint is-capture');
+                // Крок 1 — показуємо хід гравця
+                if (data.fen_after_human) {
+                    board.position(data.fen_after_human);
+                    if (game) game.load(data.fen_after_human);
+                    // Оновлюємо захоплені фігури гравцем
+                    const newCaps = computeCaptured(startFen, data.fen_after_human);
+                    capturedByHuman.push(...newCaps.filter(p => p === p.toLowerCase())); // чорні
+                    renderCaptured(capturedByHuman, 'capturedByHuman');
+                }
 
-    if (waitingForBot) return 'snapback';
-    if (!currentGameId) {
-        alert("Натисни «Нова гра»!");
-        return 'snapback';
-    }
+                if (data.status === 'game_over' && !data.bot_move) {
+                    // Гравець поставив мат/пат
+                    board.position(data.fen);
+                    if (game) game.load(data.fen);
+                    finishGame(data);
+                    waitingForBot = false;
+                    return;
+                }
 
-    if (game) {
-        const move = game.move({
-            from: source,
-            to: target,
-            promotion: 'q' // default for check
-        });
-        if (move === null) return 'snapback';
-        game.undo(); // undo for sendMove logic
-    }
+                // Крок 2 — через 600мс показуємо хід бота
+                setTimeout(() => {
+                    board.position(data.fen);
+                    if (game) game.load(data.fen);
+                    if (data.bot_move) {
+                        // Оновлюємо захоплені фігури ботом
+                        const botCaps = computeCaptured(data.fen_after_human || startFen, data.fen);
+                        capturedByBot.push(...botCaps.filter(p => p === p.toUpperCase())); // білі
+                        renderCaptured(capturedByBot, 'capturedByBot');
 
-    const fenBeforeMove = board.fen();
-    const moveStr = source + target;
-    const isPawn = piece && piece[1] === 'P';
-    const isPromoRank = (piece[0] === 'w' && target[1] === '8') ||
-                        (piece[0] === 'b' && target[1] === '1');
+                        setTimeout(() => highlightLastMove(data.bot_move), 300);
+                    }
 
-    if (isPawn && isPromoRank) {
-        pendingPromoMove = moveStr;
-        pendingPromoFen  = fenBeforeMove;
-        document.getElementById('promotionModal').classList.add('open');
-        return 'snapback';
-    }
+                    // Додаємо в історію ходів
+                    addMoveToHistory(move, data.bot_move || '');
 
-    sendMove(moveStr, 'q', fenBeforeMove);
-}
+                    if (data.status === 'game_over') {
+                        finishGame(data);
+                    } else {
+                        setTurnIndicator(true);
+                        if (data.is_check) {
+                            setStatus('⚠️ ШАХ! Твій хід!', 'check');
+                        } else {
+                            setStatus('Твій хід!', '');
+                        }
+                    }
+                    waitingForBot = false;
+                }, 600);
 
-// ── Init ──
-const config = {
-    draggable: true,
-    position: 'start',
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: () => { if (board && game) board.position(game.fen()); },
-    pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
-};
+            } catch (e) {
+                console.error(e);
+                setStatus('❌ Помилка сервера!', 'check');
+                board.position(startFen);
+                waitingForBot = false;
+                setTurnIndicator(true);
+            }
+        }
 
-board = Chessboard('myBoard', config);
-buildLevelGrid();
-checkMe();
-</script>
+        function finishGame(data) {
+            let msg = '', cls = '';
+            if (data.result === '1-0') { msg = '🏆 Ви перемогли!'; cls = 'win'; }
+            else if (data.result === '0-1') { msg = '🤖 Stockfish переміг!'; cls = 'lose'; }
+            else { msg = '🤝 Нічия!'; cls = 'draw'; }
+            if (data.is_check) msg = '♚ МАТ! ' + msg;
+            setStatus(msg, cls);
+            setTurnIndicator(false);
+            currentGameId = null;
+            document.getElementById('resignBtn').style.display = 'none';
+        }
+
+        // ── onDragStart ──
+        function onDragStart(source, piece, position, orientation) {
+            if (waitingForBot || !currentGameId) return false;
+            if (piece.search(/^b/) !== -1) return false; // Гравцю можна тягати тільки білі
+
+            if (game) {
+                const moves = game.moves({
+                    square: source,
+                    verbose: true
+                });
+                if (moves.length === 0) return;
+
+                moves.forEach(m => {
+                    const isCapture = m.flags.includes('c') || m.flags.includes('e');
+                    $(`#myBoard .square-${m.to}`).addClass('highlight-hint' + (isCapture ? ' is-capture' : ''));
+                });
+            }
+        }
+
+        // ── onDrop ──
+        function onDrop(source, target, piece) {
+            $(`#myBoard .square-55d63, #myBoard .square-2b130`).removeClass('highlight-hint is-capture');
+
+            if (waitingForBot) return 'snapback';
+            if (!currentGameId) {
+                alert("Натисни «Нова гра»!");
+                return 'snapback';
+            }
+
+            if (game) {
+                const move = game.move({
+                    from: source,
+                    to: target,
+                    promotion: 'q' // default for check
+                });
+                if (move === null) return 'snapback';
+                game.undo(); // undo for sendMove logic
+            }
+
+            const fenBeforeMove = board.fen();
+            const moveStr = source + target;
+            const isPawn = piece && piece[1] === 'P';
+            const isPromoRank = (piece[0] === 'w' && target[1] === '8') ||
+                (piece[0] === 'b' && target[1] === '1');
+
+            if (isPawn && isPromoRank) {
+                pendingPromoMove = moveStr;
+                pendingPromoFen = fenBeforeMove;
+                document.getElementById('promotionModal').classList.add('open');
+                return 'snapback';
+            }
+
+            sendMove(moveStr, 'q', fenBeforeMove);
+        }
+
+        // ── Init ──
+        const config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: () => { if (board && game) board.position(game.fen()); },
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+        };
+
+        board = Chessboard('myBoard', config);
+        buildLevelGrid();
+        checkMe();
+    </script>
 </body>
-</html>
 
+</html>

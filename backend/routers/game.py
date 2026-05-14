@@ -305,3 +305,73 @@ async def play_move(game_id: str, request: MoveRequest, http_request: Request, d
         "turn": "white" if game.board.turn == chess.WHITE else "black",
         "is_check": game.board.is_check(),
     }
+
+
+# ── Роутер для історії ігор (монтується на /games) ──
+from routers.auth import get_current_user
+from sqlalchemy import or_, func
+
+history_router = APIRouter()
+
+@history_router.get("/history")
+def get_game_history(
+    db: Session = Depends(get_db),
+    current_user: models.Player = Depends(get_current_user),
+):
+    """Повертає історію завершених ігор для поточного гравця."""
+    games = (
+        db.query(models.Game)
+        .filter(
+            or_(
+                models.Game.white_player_id == current_user.id,
+                models.Game.black_player_id == current_user.id,
+            )
+        )
+        .order_by(models.Game.played_at.desc())
+        .limit(50)
+        .all()
+    )
+
+    result = []
+    for g in games:
+        # Визначаємо результат
+        result_code = None
+        if g.game_result:
+            result_code = g.game_result.code
+
+        # Пропускаємо ігри "InProgress"
+        if result_code == "InProgress":
+            continue
+
+        is_white = g.white_player_id == current_user.id
+
+        if result_code == "WhiteWins":
+            player_result = "win" if is_white else "loss"
+        elif result_code == "BlackWins":
+            player_result = "loss" if is_white else "win"
+        elif result_code == "Draw":
+            player_result = "draw"
+        else:
+            player_result = "unknown"
+
+        # Ім'я суперника
+        if is_white:
+            opponent = g.black_player
+        else:
+            opponent = g.white_player
+
+        opponent_name = opponent.username if opponent else "Stockfish"
+
+        # Кількість ходів
+        moves_count = db.query(func.count(models.Move.move_number)).filter(
+            models.Move.game_id == g.id
+        ).scalar()
+
+        result.append({
+            "opponent_name": opponent_name,
+            "result": player_result,
+            "moves_count": moves_count or 0,
+            "date": g.played_at.isoformat() if g.played_at else None,
+        })
+
+    return result

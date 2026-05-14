@@ -74,6 +74,11 @@ frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(frontend_path):
     app.mount("/ui", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
+# Роздаємо аватари
+avatars_path = os.path.join(os.path.dirname(__file__), "avatars")
+os.makedirs(avatars_path, exist_ok=True)
+app.mount("/avatars", StaticFiles(directory=avatars_path), name="avatars")
+
 
 @app.get("/")
 def read_root():
@@ -88,7 +93,9 @@ async def favicon():
 
 # Підключаємо наші роутери
 app.include_router(game.router, prefix="/game", tags=["game"])
+app.include_router(game.history_router, prefix="/games", tags=["games"])
 app.include_router(websocket.router, tags=["websocket"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(chat.router)
 app.include_router(friends.router, prefix="/friends", tags=["friends"])
+

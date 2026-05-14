@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Налаштування профілю — Шахи</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: #302e2c;
+            color: #bababa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .edit-container {
+            background: #262421;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 650px;
+            padding: 30px;
+            margin-top: 60px;
+            /* Посуває менюшку нижче від стелі головного екрана */
+            height: auto;
+            max-height: 600px;
+            /* Строго обрізає форму, прибираючи зайве порожнє місце */
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: #81b64c;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+            font-size: 1.05em;
+            cursor: pointer;
+        }
+
+        .back-link:hover {
+            color: #a3d96c;
+        }
+
+        .back-link::before {
+            content: "← ";
+            margin-right: 6px;
+        }
+
+        h2 {
+            color: #fff;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #7d7b78;
+            margin-bottom: 25px;
+        }
+
+        .avatar-edit-zone {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background: #211f1c;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #1a1916;
+            border: 2px solid #3d3b38;
+            flex-shrink: 0;
+        }
+
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.2s;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-align: center;
+            padding: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            text-transform: uppercase;
+        }
+
+        .avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .avatar-wrapper:hover .profile-avatar {
+            opacity: 0.7;
+        }
+
+        .avatar-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .avatar-title {
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .avatar-desc {
+            font-size: 0.85em;
+            color: #7d7b78;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #1a1916;
+            border: 1px solid #3d3b38;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 1em;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #81b64c;
+        }
+
+        .action-block {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn-save {
+            background: #81b64c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 0 #5f8933;
+        }
+
+        .btn-save:hover {
+            background: #95cc5e;
+        }
+
+        .btn-save:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5f8933;
+        }
+
+        .btn-delete-photo {
+            background: transparent;
+            color: #e06666;
+            border: 1px solid #4a2a2a;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            align-self: flex-start;
+        }
+
+        .btn-delete-photo:hover {
+            background: #4a2a2a;
+            color: #ff8a8a;
+        }
+
+        #msg {
+            margin-top: 15px;
+            font-size: 0.95em;
+            min-height: 1.5em;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="edit-container">
+        <a href="/ui/profile.html" class="back-link">Скасувати</a>
+
+        <h2>Налаштування профілю</h2>
+        <p class="subtitle">Оновіть інформацію свого акаунту</p>
+
+        <div class="avatar-edit-zone">
+            <div class="avatar-wrapper" onclick="document.getElementById('fileInput').click()">
+                <img id="avatarPreview" src="https://www.w3schools.com/howto/img_avatar.png" class="profile-avatar">
+                <div class="avatar-overlay">Змінити<br>фото</div>
+            </div>
+            <div class="avatar-meta">
+                <div class="avatar-title">Фото профілю</div>
+                <div class="avatar-desc">Натисніть на квадрат, щоб вибрати нове фото.</div>
+                <button type="button" class="btn-delete-photo" onclick="deletePhoto()">Видалити фото</button>
+            </div>
+        </div>
+
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFilePreview()">
+
+        <div class="form-group">
+            <label>Внутрішнє ім'я (Нікнейм)</label>
+            <input type="text" id="usernameField" placeholder="Ваш нікнейм">
+        </div>
+
+        <div class="form-group">
+            <label>Статус профілю</label>
+            <input type="text" id="statusField" placeholder="Що у вас нового?">
+        </div>
+
+        <div class="action-block">
+            <button class="btn-save" onclick="saveData()">Зберегти зміни</button>
+        </div>
+
+        <div id="msg"></div>
+    </div>
+
+    <script>
+        (function () {
+            const isFile = location.protocol === 'file:';
+            const baseUrl = isFile ? 'http://127.0.0.1:8000' : `${location.protocol}//${location.host}`;
+            let localSelectedFile = null;
+
+            window.handleFilePreview = function () {
+                const input = document.getElementById('fileInput');
+                if (input.files && input.files[0]) {
+                    localSelectedFile = input.files[0];
+                    const reader = new FileReader();
+                    reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
+                    reader.readAsDataURL(localSelectedFile);
+                }
+            };
+
+            async function fetchCurrentData() {
+                const token = localStorage.getItem('chess_token');
+                if (!token) { window.location.href = '/ui/menu.html'; return; }
+                try {
+                    const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (!res.ok) throw new Error();
+                    const user = await res.json();
+
+                    document.getElementById('usernameField').value = user.username || '';
+                    document.getElementById('statusField').value = user.status || '';
+                    if (user.avatar_url) {
+                        document.getElementById('avatarPreview').src = baseUrl + user.avatar_url;
+                    }
+                } catch (e) { console.error("Помилка завантаження поточних даних"); }
+            }
+
+            window.saveData = async function () {
+                const token = localStorage.getItem('chess_token');
+                const username = document.getElementById('usernameField').value.trim();
+                const statusText = document.getElementById('statusField').value.trim();
+                const msgBlock = document.getElementById('msg');
+
+                if (!username) {
+                    msgBlock.style.color = '#e06666';
+                    msgBlock.textContent = "Нікнейм не може бути порожнім!";
+                    return;
+                }
+
+                msgBlock.style.color = '#bababa';
+                msgBlock.textContent = "Збереження змін...";
+
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('status_text', statusText);
+                if (localSelectedFile) { formData.append('file', localSelectedFile); }
+
+                try {
+                    const res = await fetch(`${baseUrl}/auth/update`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        msgBlock.style.color = '#81b64c';
+                        msgBlock.textContent = "Зміни збережено успішно!";
+
+                        if (data.access_token) {
+                            localStorage.setItem('chess_token', data.access_token);
+                        }
+
+                        // Надійно підвантажуємо профіль у безшовний оверлей меню без вилітання
+                        setTimeout(() => {
+                            if (typeof loadPageAsOverlay === 'function') {
+                                loadPageAsOverlay('/ui/profile.html');
+                            } else if (window.loadPageAsOverlay) {
+                                window.loadPageAsOverlay('/ui/profile.html');
+                            } else {
+                                window.location.href = '/ui/profile.html';
+                            }
+                        }, 600);
+                    } else {
+                        msgBlock.style.color = '#e06666';
+                        msgBlock.textContent = data.detail || "Помилка збереження даних";
+                    }
+                } catch (err) {
+                    msgBlock.style.color = '#e06666';
+                    msgBlock.textContent = "Помилка зв'язку з сервером.";
+                }
+            };
+
+            window.deletePhoto = async function () {
+                const token = localStorage.getItem('chess_token');
+                if (!confirm("Видалити фото профілю?")) return;
+                try {
+                    const formData = new FormData();
+                    formData.append('username', document.getElementById('usernameField').value);
+                    formData.append('status_text', document.getElementById('statusField').value);
+                    formData.append('delete_avatar', 'true');
+
+                    const res = await fetch(`${baseUrl}/auth/update`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+                    if (res.ok) {
+                        document.getElementById('avatarPreview').src = 'https://www.w3schools.com/howto/img_avatar.png';
+                        localSelectedFile = null;
+                        document.getElementById('msg').style.color = '#81b64c';
+                        document.getElementById('msg').textContent = "Фото видалено з прев'ю. Натисніть 'Зберегти зміни' для фіксації.";
+                    }
+                } catch (e) { console.error(e); }
+            };
+
+            fetchCurrentData();
+        })();
+    </script>
+</body>
+
+</html>
