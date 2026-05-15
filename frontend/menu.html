@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <title>Шахи — Головне меню</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -43,8 +48,15 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50%       { transform: translateY(-15px) rotate(2deg); }
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(2deg);
+            }
         }
 
         h1 {
@@ -56,7 +68,7 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         .subtitle {
@@ -137,14 +149,19 @@
         .card::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(800px circle at var(--x) var(--y), rgba(255,255,255,0.06), transparent 40%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(800px circle at var(--x) var(--y), rgba(255, 255, 255, 0.06), transparent 40%);
             opacity: 0;
             transition: opacity 0.5s;
             pointer-events: none;
         }
 
-        .card:hover::before { opacity: 1; }
+        .card:hover::before {
+            opacity: 1;
+        }
 
         .card:hover {
             transform: translateY(-12px) rotateX(4deg);
@@ -158,7 +175,10 @@
             line-height: 1;
             transition: transform 0.3s;
         }
-        .card:hover .card-icon { transform: scale(1.1); }
+
+        .card:hover .card-icon {
+            transform: scale(1.1);
+        }
 
         .card-title {
             font-size: 1.3em;
@@ -172,13 +192,24 @@
             line-height: 1.5;
         }
 
-        .card.vs-bot    { border-bottom: 4px solid #10b981; }
-        .card.vs-human  { border-bottom: 4px solid #3b82f6; }
-        .card.profile-card { border-bottom: 4px solid #a855f7; }
+        .card.vs-bot {
+            border-bottom: 4px solid #10b981;
+        }
+
+        .card.vs-human {
+            border-bottom: 4px solid #3b82f6;
+        }
+
+        .card.profile-card {
+            border-bottom: 4px solid #a855f7;
+        }
 
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -201,7 +232,7 @@
             padding: 40px;
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             width: 400px;
             text-align: center;
             position: relative;
@@ -231,6 +262,7 @@
             transition: all 0.2s;
             text-align: left;
         }
+
         .auth-container input:focus {
             background: rgba(15, 23, 42, 0.8);
             border-color: #3b82f6;
@@ -254,43 +286,100 @@
             transition: all 0.2s;
         }
 
-        .btn-primary { background: #2563eb; color: #fff; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-secondary { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
 
         .close-modal {
             position: absolute;
-            top: 16px; right: 20px;
+            top: 16px;
+            right: 20px;
             font-size: 24px;
             color: #64748b;
             cursor: pointer;
             transition: color 0.2s;
         }
-        .close-modal:hover { color: #fff; }
+
+        .close-modal:hover {
+            color: #fff;
+        }
 
         .audio-control {
-            position: fixed; top: 24px; left: 24px; z-index: 1000;
-            background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-radius: 50%; width: 50px; height: 50px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; color: #fff; transition: all 0.3s ease;
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 1000;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.3s ease;
         }
-        .audio-control:hover { transform: scale(1.1); background: rgba(30, 41, 59, 0.8); }
+
+        .audio-control:hover {
+            transform: scale(1.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
 
         .server-status {
-            margin-top: 50px; font-size: 0.85em; color: #475569;
-            background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 100px;
-            display: flex; align-items: center; gap: 10px;
+            margin-top: 50px;
+            font-size: 0.85em;
+            color: #475569;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 16px;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .dot { width: 9px; height: 9px; border-radius: 50%; background: #fc8181; display: inline-block; }
-        .dot.online { background: #68d391; box-shadow: 0 0 8px #68d391; }
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #fc8181;
+            display: inline-block;
+        }
 
-        footer { margin-top: 30px; color: #4a5568; font-size: 0.78em; text-align: center; }
+        .dot.online {
+            background: #68d391;
+            box-shadow: 0 0 8px #68d391;
+        }
+
+        footer {
+            margin-top: 30px;
+            color: #4a5568;
+            font-size: 0.78em;
+            text-align: center;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="audio-control" id="audioBtn" onclick="toggleMusic()">🔈</div>
@@ -309,11 +398,12 @@
 
         <div id="mainMenuScreen" class="screen hidden">
             <div class="menu-cards">
-                
+
                 <div class="card profile-card" onclick="openAuthModal()">
                     <div class="card-icon" id="menuProfileIcon">🔐</div>
                     <div class="card-title" id="menuProfileTitle">Авторизація</div>
-                    <div class="card-desc" id="menuProfileDesc">Увійдіть у систему, щоб зберегти свій прогрес та рейтинг Elo</div>
+                    <div class="card-desc" id="menuProfileDesc">Увійдіть у систему, щоб зберегти свій прогрес та рейтинг
+                        Elo</div>
                 </div>
 
                 <a href="/ui/index.html" class="card vs-bot">
@@ -361,10 +451,12 @@
                 <p id="lblUser" style="font-size: 1.6em; font-weight: 700; color: #fff; margin-top: 4px;"></p>
             </div>
             <div style="margin: 25px 0 35px 0;">
-                <p style="color: #64748b; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">Рейтинг Elo</p>
+                <p style="color: #64748b; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">Рейтинг Elo
+                </p>
                 <p id="lblRating" style="font-size: 2.5em; font-weight: 800; color: #10b981; margin-top: 4px;"></p>
             </div>
-            <button onclick="logout()" class="btn-secondary" style="width: 100%; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Вийти з акаунту</button>
+            <button onclick="logout()" class="btn-secondary"
+                style="width: 100%; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Вийти з акаунту</button>
         </div>
     </div>
 
@@ -411,7 +503,7 @@
                     document.getElementById('srvLabel').textContent = `Сервер працює · ${baseUrl}`;
                     return;
                 }
-            } catch (_) {}
+            } catch (_) { }
             document.getElementById('dot').classList.remove('online');
             document.getElementById('srvLabel').textContent = 'Сервер не запущений — запустіть start.bat';
         }
@@ -484,10 +576,10 @@
                 const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error();
                 const user = await res.json();
-                
+
                 const avatarUrl = user.avatar_url ? (baseUrl + user.avatar_url) : 'https://www.w3schools.com/howto/img_avatar.png';
                 menuIcon.innerHTML = `<img src="${avatarUrl}" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #a855f7;">`;
-                
+
                 menuTitle.textContent = user.username;
                 menuDesc.textContent = `Рейтинг: ${user.rating} Elo. Натисніть, щоб перейти в профіль.`;
                 menuCard.onclick = () => { loadPageAsOverlay('/ui/profile.html'); };
@@ -537,8 +629,8 @@
                 mainMenuScreen.style.opacity = '1';
             }
         }
-// Функція безшовного завантаження сторінок з ПОВНИМ збереженням CSS-стилів дизайну
-async function loadPageAsOverlay(url) {
+        // Функція безшовного завантаження сторінок з ПОВНИМ збереженням CSS-стилів дизайну
+        async function loadPageAsOverlay(url) {
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error();
@@ -549,7 +641,7 @@ async function loadPageAsOverlay(url) {
 
                 // 1. Шукаємо контент (для профілю або редагування)
                 const newContent = doc.querySelector('.profile-container') || doc.querySelector('.edit-container');
-                
+
                 if (newContent) {
                     // Тимчасово приховуємо картки вибору режимів меню
                     const gameContainer = document.querySelector('.game-container');
@@ -633,4 +725,5 @@ async function loadPageAsOverlay(url) {
         setInterval(checkServer, 5000);
     </script>
 </body>
+
 </html>

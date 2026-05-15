@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <title>Налаштування профілю — Шахи</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -13,20 +18,19 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            /* ПОВЕРНУЛИ МЕНЮ ДОГОРИ */
+            align-items: flex-start; 
+            padding: 60px 20px;
         }
 
         .edit-container {
             background: #262421;
             border-radius: 16px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
             width: 100%;
             max-width: 650px;
             padding: 30px;
-            margin-top: 60px; /* Посуває менюшку нижче від стелі головного екрана */
-            height: auto;
-            max-height: 600px; /* Строго обрізає форму, прибираючи зайве порожнє місце */
+            max-height: 700px;
         }
 
         .back-link {
@@ -40,6 +44,7 @@
             font-size: 1.05em;
             cursor: pointer;
         }
+
         .back-link:hover { color: #a3d96c; }
         .back-link::before { content: "← "; margin-right: 6px; }
 
@@ -68,7 +73,7 @@
             flex-shrink: 0;
         }
 
-        .profile-avatar { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.2s; }
+        .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
 
         .avatar-overlay {
             position: absolute;
@@ -81,22 +86,22 @@
             font-size: 0.85em;
             font-weight: 600;
             text-align: center;
-            padding: 6px;
             opacity: 0;
             transition: opacity 0.2s;
             text-transform: uppercase;
         }
+
         .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
-        .avatar-wrapper:hover .profile-avatar { opacity: 0.7; }
 
         .avatar-meta { display: flex; flex-direction: column; gap: 6px; }
-        .avatar-title { color: #fff; font-weight: 600; font-size: 1.05em; }
+        .avatar-title { color: #fff; font-weight: 600; }
         .avatar-desc { font-size: 0.85em; color: #7d7b78; }
 
         #fileInput { display: none; }
 
         .form-group { margin-bottom: 20px; }
         label { display: block; color: #fff; font-weight: 600; font-size: 0.95em; margin-bottom: 8px; }
+
         input[type="text"] {
             width: 100%;
             background: #1a1916;
@@ -105,32 +110,81 @@
             padding: 12px 16px;
             color: #fff;
             font-size: 1em;
-            transition: border-color 0.2s;
         }
+
         input[type="text"]:focus { outline: none; border-color: #81b64c; }
 
-        .action-block { display: flex; align-items: center; gap: 15px; margin-top: 25px; }
-        
-        .btn-save {
-            background: #81b64c; color: #fff; border: none; border-radius: 8px;
-            padding: 12px 30px;
-            font-size: 1.05em; font-weight: 700;
-            cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 0 #5f8933;
+        .action-block {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 25px;
         }
+
+        .btn-save {
+            background: #81b64c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 0 #5f8933;
+        }
+
         .btn-save:hover { background: #95cc5e; }
         .btn-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #5f8933; }
 
+        .btn-logout {
+            background: transparent;
+            color: #e06666;
+            border: 1px solid #e06666;
+            border-radius: 8px;
+            padding: 11px 20px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover { background: #e06666; color: #fff; }
+
+        .logout-confirm-zone {
+            display: none;
+            background: #211f1c;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #4a2a2a;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .logout-confirm-zone p { color: #fff; font-size: 0.95em; margin-bottom: 12px; }
+
+        .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+        .btn-yes { background: #e06666; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+        .btn-no { background: #3d3b38; color: #bababa; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+
         .btn-delete-photo {
-            background: transparent; color: #e06666; border: 1px solid #4a2a2a; border-radius: 6px;
+            background: transparent;
+            color: #e06666;
+            border: 1px solid #4a2a2a;
+            border-radius: 6px;
             padding: 5px 12px;
-            font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
             align-self: flex-start;
         }
-        .btn-delete-photo:hover { background: #4a2a2a; color: #ff8a8a; }
 
-        #msg { margin-top: 15px; font-size: 0.95em; min-height: 1.5em; font-weight: 500; }
+        #msg { margin-top: 15px; font-size: 0.95em; min-height: 1.5em; }
     </style>
 </head>
+
 <body>
 
     <div class="edit-container">
@@ -165,121 +219,113 @@
 
         <div class="action-block">
             <button class="btn-save" onclick="saveData()">Зберегти зміни</button>
+            <button id="logoutBtn" class="btn-logout" onclick="showConfirmZone()">Вийти з акаунта</button>
+        </div>
+
+        <div id="logoutConfirmZone" class="logout-confirm-zone">
+            <p>Ви впевнені, що хочете вийти?</p>
+            <div class="confirm-btns">
+                <button class="btn-yes" onclick="confirmLogout()">Так, вийти</button>
+                <button class="btn-no" onclick="hideConfirmZone()">Скасувати</button>
+            </div>
         </div>
 
         <div id="msg"></div>
     </div>
 
     <script>
-    (function() {
-        const isFile = location.protocol === 'file:';
-        const baseUrl = isFile ? 'http://127.0.0.1:8000' : `${location.protocol}//${location.host}`;
-        let localSelectedFile = null;
+        (function () {
+            const isFile = location.protocol === 'file:';
+            const baseUrl = isFile ? 'http://127.0.0.1:8000' : `${location.protocol}//${location.host}`;
+            let localSelectedFile = null;
 
-        window.handleFilePreview = function() {
-            const input = document.getElementById('fileInput');
-            if (input.files && input.files[0]) {
-                localSelectedFile = input.files[0];
-                const reader = new FileReader();
-                reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
-                reader.readAsDataURL(localSelectedFile);
-            }
-        };
+            window.showConfirmZone = function() {
+                document.getElementById('logoutBtn').style.display = 'none';
+                document.getElementById('logoutConfirmZone').style.display = 'block';
+            };
 
-        async function fetchCurrentData() {
-            const token = localStorage.getItem('chess_token');
-            if (!token) { window.location.href = '/ui/menu.html'; return; }
-            try {
-                const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) throw new Error();
-                const user = await res.json();
+            window.hideConfirmZone = function() {
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('logoutConfirmZone').style.display = 'none';
+            };
 
-                document.getElementById('usernameField').value = user.username || '';
-                document.getElementById('statusField').value = user.status || '';
-                if (user.avatar_url) {
-                    document.getElementById('avatarPreview').src = baseUrl + user.avatar_url;
+            window.confirmLogout = function() {
+                localStorage.removeItem('chess_token');
+                window.location.href = '/ui/menu.html';
+            };
+
+            window.handleFilePreview = function () {
+                const input = document.getElementById('fileInput');
+                if (input.files && input.files[0]) {
+                    localSelectedFile = input.files[0];
+                    const reader = new FileReader();
+                    reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
+                    reader.readAsDataURL(localSelectedFile);
                 }
-            } catch (e) { console.error("Помилка завантаження поточних даних"); }
-        }
+            };
 
-        window.saveData = async function() {
-            const token = localStorage.getItem('chess_token');
-            const username = document.getElementById('usernameField').value.trim();
-            const statusText = document.getElementById('statusField').value.trim();
-            const msgBlock = document.getElementById('msg');
-            
-            if (!username) {
-                msgBlock.style.color = '#e06666';
-                msgBlock.textContent = "Нікнейм не може бути порожнім!";
-                return;
-            }
-
-            msgBlock.style.color = '#bababa';
-            msgBlock.textContent = "Збереження змін...";
-
-            const formData = new FormData();
-            formData.append('username', username);
-            formData.append('status_text', statusText);
-            if (localSelectedFile) { formData.append('file', localSelectedFile); }
-
-            try {
-                const res = await fetch(`${baseUrl}/auth/update`, { 
-                    method: 'PUT', 
-                    headers: { 'Authorization': `Bearer ${token}` }, 
-                    body: formData 
-                });
-                
-                const data = await res.json();
-
-                if (res.ok) {
-                    msgBlock.style.color = '#81b64c';
-                    msgBlock.textContent = "Зміни збережено успішно!";
-                    
-                    if (data.access_token) {
-                        localStorage.setItem('chess_token', data.access_token);
+            async function fetchCurrentData() {
+                const token = localStorage.getItem('chess_token');
+                if (!token) { window.location.href = '/ui/menu.html'; return; }
+                try {
+                    const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (res.ok) {
+                        const user = await res.json();
+                        document.getElementById('usernameField').value = user.username || '';
+                        document.getElementById('statusField').value = user.status || '';
+                        if (user.avatar_url) document.getElementById('avatarPreview').src = baseUrl + user.avatar_url;
                     }
-
-                    // Надійно підвантажуємо профіль у безшовний оверлей меню без вилітання
-                    setTimeout(() => { 
-                        if (typeof loadPageAsOverlay === 'function') {
-                            loadPageAsOverlay('/ui/profile.html');
-                        } else if (window.loadPageAsOverlay) {
-                            window.loadPageAsOverlay('/ui/profile.html');
-                        } else {
-                            window.location.href = '/ui/profile.html';
-                        }
-                    }, 600);
-                } else {
-                    msgBlock.style.color = '#e06666';
-                    msgBlock.textContent = data.detail || "Помилка збереження даних";
-                }
-            } catch (err) { 
-                msgBlock.style.color = '#e06666'; 
-                msgBlock.textContent = "Помилка зв'язку з сервером."; 
+                } catch (e) { console.error("Дані не завантажено"); }
             }
-        };
 
-        window.deletePhoto = async function() {
-            const token = localStorage.getItem('chess_token');
-            if (!confirm("Видалити фото профілю?")) return;
-            try {
+            window.saveData = async function () {
+                const token = localStorage.getItem('chess_token');
+                const username = document.getElementById('usernameField').value.trim();
+                const statusText = document.getElementById('statusField').value.trim();
+                const msgBlock = document.getElementById('msg');
+
+                if (!username) {
+                    msgBlock.style.color = '#e06666';
+                    msgBlock.textContent = "Нікнейм не може бути порожнім!";
+                    return;
+                }
+
+                msgBlock.style.color = '#bababa';
+                msgBlock.textContent = "Збереження змін...";
+
                 const formData = new FormData();
-                formData.append('username', document.getElementById('usernameField').value);
-                formData.append('status_text', document.getElementById('statusField').value);
-                formData.append('delete_avatar', 'true');
+                formData.append('username', username);
+                // ВИПРАВЛЕНО: статус_text замість status
+                formData.append('status_text', statusText);
+                if (localSelectedFile) formData.append('file', localSelectedFile);
 
-                const res = await fetch(`${baseUrl}/auth/update`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
-                if (res.ok) {
+                try {
+                    const res = await fetch(`${baseUrl}/auth/update`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    if (res.ok) {
+                        msgBlock.style.color = '#81b64c';
+                        msgBlock.textContent = "Зміни збережено успішно!";
+                        setTimeout(() => { window.location.href = '/ui/profile.html'; }, 600);
+                    } else {
+                        const data = await res.json();
+                        msgBlock.style.color = '#e06666';
+                        msgBlock.textContent = data.detail || "Помилка збереження";
+                    }
+                } catch (err) { console.error(err); }
+            };
+
+            window.deletePhoto = function() {
+                if(confirm("Видалити фото?")) {
                     document.getElementById('avatarPreview').src = 'https://www.w3schools.com/howto/img_avatar.png';
                     localSelectedFile = null;
-                    document.getElementById('msg').style.color = '#81b64c';
-                    document.getElementById('msg').textContent = "Фото видалено з прев'ю. Натисніть 'Зберегти зміни' для фіксації.";
                 }
-            } catch (e) { console.error(e); }
-        };
+            };
 
-        fetchCurrentData();
-    })();
+            fetchCurrentData();
+        })();
     </script>
 </body>
 </html>
