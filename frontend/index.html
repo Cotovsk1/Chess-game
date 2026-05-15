@@ -375,8 +375,8 @@
 
                 <div class="game-controls">
                     <button class="control-btn" onclick="resignGame()" title="Здатися">🏳</button>
-                    <button class="control-btn" title="Хід назад (у розробці)">↩</button>
-                    <button class="control-btn" title="Підказка (у розробці)">💡</button>
+                    <button class="control-btn" onclick="undoMove()" title="Хід назад">↩</button>
+                    <button class="control-btn" onclick="getHint()" title="Підказка">💡</button>
                 </div>
             </div>
         </div>
@@ -547,6 +547,41 @@
                 setStatus('ВИ ЗДАЛИСЯ, Stockfish переміг', 'lose');
                 currentGameId = null;
                 waitingForBot = false;
+            }
+        }
+
+        async function undoMove() {
+            if (!currentGameId || waitingForBot) return;
+            const res = await fetch(`${API_URL}/game/undo/${currentGameId}`, { method: 'POST' });
+            if (res.ok) {
+                const data = await res.json();
+                board.position(data.fen, true);
+                game.load(data.fen);
+                if (moveHistory.length > 0) moveHistory.pop();
+                updateUI();
+                setStatus('Хід скасовано. Твій хід!', '');
+                removeHints();
+            }
+        }
+
+        async function getHint() {
+            if (!currentGameId || waitingForBot) return;
+            setStatus('Отримання підказки...', '');
+            const res = await fetch(`${API_URL}/game/hint/${currentGameId}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.hint) {
+                    const fromSquare = data.hint.substring(0, 2);
+                    const toSquare = data.hint.substring(2, 4);
+                    removeHints();
+                    showHint(fromSquare);
+                    showHint(toSquare);
+                    setStatus('Підказка отримана!', 'player-check');
+                } else {
+                    setStatus('Підказка недоступна.', '');
+                }
+            } else {
+                setStatus('Помилка сервера.', 'error');
             }
         }
 
