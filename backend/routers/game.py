@@ -100,6 +100,11 @@ def _game_over_response(game: ChessGame, db: Session = None) -> dict:
 
 def record_move(db: Session, game_id: int, uci_move: str, move_number: int):
     if game_id:
+        # Видаляємо старі ходи (наприклад, ті, що залишилися після відміни)
+        db.query(models.Move).filter(
+            models.Move.game_id == game_id,
+            models.Move.move_number >= move_number
+        ).delete()
         db_move = models.Move(game_id=game_id, notation=uci_move, move_number=move_number)
         db.add(db_move)
         db.commit()
@@ -224,7 +229,7 @@ def get_game_state(game_id: str):
         "black_time": b_time
     }
 
-@router.delete("/{game_id}")
+@router.post("/resign/{game_id}")
 def resign_game(game_id: str, db: Session = Depends(get_db)):
     """Здатися / завершити гру достроково"""
     if game_id not in active_games:
@@ -237,9 +242,61 @@ def resign_game(game_id: str, db: Session = Depends(get_db)):
             # Якщо здався живий гравець (який зазвичай грає білими проти бота)
             db_game.result_id = get_or_create_game_result(db, "BlackWins")
             db.commit()
+            bot_elo = 800 + (game.level * 200)
+            update_player_elo(db, game.white_player_id, bot_elo, 0.0)
 
     del active_games[game_id]
     return {"status": "resigned", "message": "Гру завершено. Ви здалися."}
+
+@router.post("/undo/{game_id}")
+def undo_move(game_id: str):
+    """Скасувати хід"""
+    if game_id not in active_games:
+        raise HTTPException(status_code=404, detail="Гру не знайдено!")
+    
+    game = active_games[game_id]
+    
+    # Відміняємо хід бота, потім хід гравця
+    if len(game.history) >= 2:
+        game.undo_move()
+        game.undo_move()
+    elif len(game.history) == 1:
+        game.undo_move()
+
+    return {
+        "status": "undone",
+        "fen": game.board.fen(),
+        "is_check": game.board.is_check(),
+        "turn": "white" if game.board.turn == chess.WHITE else "black",
+    }
+
+@router.get("/hint/{game_id}")
+async def get_hint(game_id: str, http_request: Request):
+    """Отримати підказку для наступного ходу"""
+    if game_id not in active_games:
+        raise HTTPException(status_code=404, detail="Гру не знайдено!")
+    
+    game = active_games[game_id]
+    if game.board.is_game_over():
+        return {"hint": None}
+
+    try:
+        engine = http_request.app.state.engine
+        engine_lock = getattr(http_request.app.state, "engine_lock", None)
+        
+        if engine_lock:
+            async with engine_lock:
+                await engine.configure({"Skill Level": 20})
+                result = await engine.play(game.board, chess.engine.Limit(time=0.5))
+                hint_move = result.move.uci() if result.move else None
+        else:
+            await engine.configure({"Skill Level": 20})
+            result = await engine.play(game.board, chess.engine.Limit(time=0.5))
+            hint_move = result.move.uci() if result.move else None
+            
+        return {"hint": hint_move}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Помилка рушія: {str(e)}")
 
 @router.post("/play/{game_id}")
 async def play_move(game_id: str, request: MoveRequest, http_request: Request, db: Session = Depends(get_db)):
