@@ -7,9 +7,38 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <link rel="icon" type="image/svg" href="/favicon.ico">
 
     <style>
+        #musicToggle {
+            position: fixed;
+            top: 90px;
+            left: 20px;
+
+            width: 52px;
+            height: 52px;
+
+            border-radius: 14px;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 999;
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        #musicToggle:hover {
+            background: rgba(51, 65, 85, 0.9);
+            transform: scale(1.05);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -17,7 +46,7 @@
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             background: #0f172a;
             color: #f1f5f9;
             min-height: 100vh;
@@ -25,11 +54,10 @@
             flex-direction: column;
         }
 
-        /* ── HEADER ── */
         header {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
             padding: 16px 32px;
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(10px);
@@ -40,17 +68,14 @@
         }
 
         header a {
+            justify-self: start;
             color: #94a3b8;
             text-decoration: none;
             font-size: 0.9em;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
             padding: 8px 16px;
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.03);
+            transition: 0.2s;
         }
 
         header a:hover {
@@ -61,11 +86,16 @@
         header h1 {
             font-size: 1.25em;
             font-weight: 700;
-            letter-spacing: 0.5px;
             color: #fff;
+            text-align: center;
         }
 
-        /* ── LAYOUT ── */
+        .header-right {
+            justify-self: end;
+            display: flex;
+            gap: 15px;
+        }
+
         .game-layout {
             display: grid;
             grid-template-columns: 280px 1fr 320px;
@@ -76,20 +106,8 @@
             width: 100%;
         }
 
-        @media (max-width: 1100px) {
-            .game-layout {
-                grid-template-columns: 1fr;
-                justify-items: center;
-            }
-
-            .left-panel,
-            .right-panel {
-                width: 440px;
-            }
-        }
-
-        /* ── LEFT PANEL ── */
-        .left-panel {
+        .left-panel,
+        .right-panel {
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -100,7 +118,9 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 20px;
             padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+            display: flex;
+            flex-direction: column;
         }
 
         .panel-card h3 {
@@ -112,7 +132,6 @@
             font-weight: 700;
         }
 
-        /* Level selector */
         .level-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -125,27 +144,18 @@
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.03);
             color: #94a3b8;
-            font-size: 0.9em;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .lvl-btn:hover {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: #10b981;
-            color: #10b981;
         }
 
         .lvl-btn.active {
             background: #10b981;
             border-color: #10b981;
             color: #fff;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-            transform: scale(1.05);
         }
 
         .level-label {
@@ -155,275 +165,24 @@
             text-align: center;
             font-weight: 600;
             background: rgba(16, 185, 129, 0.1);
-            padding: 6px;
-            border-radius: 8px;
-        }
-
-        /* Action buttons */
-        .action-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 14px;
-            font-size: 0.95em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-start {
-            background: #2563eb;
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-start:hover {
-            background: #1d4ed8;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn-resign {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            display: none;
-        }
-
-        .btn-resign:hover {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fff;
-        }
-
-        /* Captured pieces */
-        .captured-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            min-height: 32px;
-            font-size: 1.6em;
-            line-height: 1;
             padding: 8px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        /* ── BOARD AREA ── */
-        .board-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-        }
-
-        /* Player name tags */
-        .player-tag {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 500px;
-            padding: 12px 20px;
-            border-radius: 16px;
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s;
-        }
-
-        .player-tag .icon {
-            font-size: 1.6em;
-            filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
-        }
-
-        .player-tag .name {
-            font-weight: 600;
-            font-size: 1em;
-            color: #f1f5f9;
-        }
-
-        .player-tag .tag-info {
-            font-size: 0.85em;
-            color: #94a3b8;
-            margin-left: auto;
-            font-family: monospace;
-        }
-
-        .player-tag.active-turn {
-            border-color: rgba(37, 99, 235, 0.5);
-            background: rgba(37, 99, 235, 0.08);
-            box-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
+            border-radius: 8px;
         }
 
         #myBoard {
             width: 500px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             border: 4px solid #1e293b;
-        }
-
-        /* Status bar */
-        #status {
-            width: 500px;
-            padding: 14px 24px;
-            border-radius: 14px;
-            font-size: 1em;
-            font-weight: 600;
-            text-align: center;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        #status.thinking {
-            background: rgba(37, 99, 235, 0.15);
-            border-color: #3b82f6;
-            color: #93c5fd;
-        }
-
-        #status.check {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: #ef4444;
-            color: #fca5a5;
-            animation: pulse-red 2s infinite;
-        }
-
-        #status.win {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: #10b981;
-            color: #6ee7b7;
-        }
-
-        #status.lose {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: #f97316;
-            color: #fdba74;
-        }
-
-        #status.draw {
-            background: rgba(100, 116, 139, 0.15);
-            border-color: #94a3b8;
-            color: #cbd5e1;
-        }
-
-        @keyframes pulse-red {
-            0% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-            }
-        }
-
-        /* ── RIGHT PANEL — move history ── */
-        .right-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .move-list {
-            max-height: 520px;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            font-size: 0.9em;
-        }
-
-        .move-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .move-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .move-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-
-        .move-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .move-row {
-            display: grid;
-            grid-template-columns: 40px 1fr 1fr;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 2px;
-            transition: background 0.2s;
-        }
-
-        .move-row:nth-child(odd) {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .move-row:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .move-num {
-            color: #475569;
-            font-weight: 600;
-        }
-
-        .move-cell {
-            color: #cbd5e1;
-            cursor: pointer;
             border-radius: 4px;
-            padding: 2px 6px;
         }
 
-        .move-cell.bot {
-            color: #93c5fd;
-        }
-
-        .move-cell.last {
-            background: rgba(16, 185, 129, 0.2);
-            color: #6ee7b7;
-            font-weight: 700;
-        }
-
-        /* ── HIGHLIGHT ── */
-        .highlight-last {
-            background: rgba(255, 255, 0, 0.4) !important;
-            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .highlight-check {
-            background: rgba(239, 68, 68, 0.6) !important;
-        }
-
-        /* Custom board pieces (Beautiful contrast for dark theme) */
         .square-55d63 {
-            background-color: #334155 !important;
-            /* Deep Slate */
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-            /* Більш чітка рамка */
+            background-color: #3b4c61 !important;
+            border: 0.1px solid rgba(255, 255, 255, 0.05);
         }
 
         .square-2b130 {
-            background-color: #94a3b8 !important;
-            /* Lighter Slate */
-            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
-            /* Більш чітка рамка */
-        }
-
-        /* Coordinate labels color adjustment for better visibility */
-        .notation-322f9 {
-            color: #f1f5f9 !important;
-            opacity: 0.5;
+            background-color: #5b6f82 !important;
+            border: 0.1px solid rgba(255, 255, 255, 0.05);
         }
 
         .highlight-hint {
@@ -436,561 +195,377 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 35%;
-            height: 35%;
-            background: rgba(0, 0, 0, 0.15);
+            width: 24%;
+            height: 24%;
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 50%;
+            z-index: 10;
+            pointer-events: none;
         }
 
         .highlight-hint.is-capture::after {
-            width: 80%;
-            height: 80%;
+            width: 85%;
+            height: 85%;
             background: transparent;
-            border: 4px solid rgba(0, 0, 0, 0.1);
+            border: 5px solid rgba(0, 0, 0, 0.15);
+            border-radius: 50%;
         }
 
-        /* ── PROMOTION MODAL ── */
-        #promotionModal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            justify-content: center;
+        .board-area {
+            display: flex;
+            flex-direction: column;
             align-items: center;
-        }
-
-        #promotionModal.open {
-            display: flex;
-        }
-
-        .promo-box {
-            background: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        .promo-box h3 {
-            margin: 0 0 24px;
-            font-size: 1.1em;
-            color: #94a3b8;
-            font-weight: 600;
-        }
-
-        .promo-pieces {
-            display: flex;
             gap: 16px;
+        }
+
+        .player-tag {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 500px;
+            padding: 12px 20px;
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .player-tag.active-turn {
+            border-color: rgba(37, 99, 235, 0.5);
+        }
+
+        #status {
+            width: 500px;
+            padding: 16px;
+            text-align: center;
+            font-weight: 700;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #status.check {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        #status.player-check {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        #status.win {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #6ee7b7;
+        }
+
+        #status.lose {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: #f97316;
+            color: #fdba74;
+        }
+
+        .move-list {
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+
+        .move-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr;
+            padding: 4px 8px;
+        }
+
+        /* ── СТИЛІ ДЛЯ КНОПОК КЕРУВАННЯ ── */
+        .game-controls {
+            margin-top: auto;
+            /* ← МАГІЯ */
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 15px;
+        }
+
+        .control-btn {
+            background: rgba(45, 55, 72, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
             justify-content: center;
         }
 
-        .promo-piece {
-            font-size: 64px;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 12px 20px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            line-height: 1;
-            background: rgba(255, 255, 255, 0.02);
+        .control-btn:hover {
+            background: rgba(71, 85, 105, 0.8);
+            color: #fff;
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .promo-piece:hover {
-            border-color: #10b981;
-            transform: translateY(-5px);
-            background: rgba(16, 185, 129, 0.1);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        .control-btn:active {
+            transform: translateY(0);
         }
     </style>
 </head>
 
 <body>
 
+    <div id="ytMusic" style="display:none;"></div>
+    <div id="musicToggle" onclick="toggleMusic()">🔊</div>
+
     <header>
-        <a href="/ui/menu.html">← Меню</a>
+        <a href="/ui/menu.html?skipStart=true">← Меню</a>
         <h1>♟ Гра проти Stockfish</h1>
-        <span id="levelBadge" style="font-size:0.85em;color:#68d391;font-weight:600;"></span>
-        <span id="userBadge" style="font-size:0.85em;color:#90cdf4;font-weight:600;"></span>
+        <div class="header-right">
+            <span id="levelBadge" style="color:#68d391; font-weight:600;"></span>
+            <span id="userBadge" style="color:#90cdf4; font-weight:600;"></span>
+        </div>
     </header>
 
     <div class="game-layout">
-
-        <!-- ── LEFT PANEL ── -->
         <div class="left-panel">
-
-            <!-- Вибір рівня -->
             <div class="panel-card">
                 <h3>Рівень складності</h3>
                 <div class="level-grid" id="levelGrid"></div>
                 <div class="level-label" id="levelName"></div>
             </div>
-
-            <!-- Кнопки дій -->
-            <div class="panel-card" style="display:flex;flex-direction:column;gap:12px;">
-                <h3>Дії</h3>
-                <button class="action-btn btn-start" onclick="startNewGame()"><span>▶</span> Нова гра</button>
-                <button class="action-btn btn-resign" id="resignBtn" onclick="resignGame()"><span>⚑</span>
-                    Здатися</button>
+            <div class="panel-card">
+                <button class="action-btn btn-start"
+                    style="width:100%; padding:14px; border:none; border-radius:14px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;"
+                    onclick="startNewGame()">▶ Нова гра</button>
             </div>
-
-            <!-- Захоплені фігури бота -->
             <div class="panel-card">
                 <h3>Захоплено ботом</h3>
-                <div class="captured-row" id="capturedByBot"></div>
+                <div id="capturedByBot" style="font-size:1.5em; min-height:30px;"></div>
             </div>
-
-            <!-- Захоплені фігури гравця -->
             <div class="panel-card">
                 <h3>Захоплено вами</h3>
-                <div class="captured-row" id="capturedByHuman"></div>
+                <div id="capturedByHuman" style="font-size:1.5em; min-height:30px;"></div>
             </div>
         </div>
 
-        <!-- ── BOARD ── -->
         <div class="board-area">
-            <!-- Бот (чорні) -->
-            <div class="player-tag" id="tagBot">
-                <span class="icon">🤖</span>
-                <div>
-                    <div class="name">Stockfish</div>
-                </div>
-                <span class="tag-info" id="botTagInfo"></span>
+            <div class="player-tag">
+                🤖 Stockfish
             </div>
-
             <div id="myBoard"></div>
-
-            <!-- Гравець (білі) -->
-            <div class="player-tag active-turn" id="tagHuman">
-                <span class="icon">👤</span>
-                <div>
-                    <div class="name">Ви (Білі)</div>
-                </div>
-                <span class="tag-info">♙</span>
+            <div class="player-tag">
+                👤 Ви (Білі)
             </div>
-
-            <div id="status">Вибери рівень і натисни «Нова гра»</div>
+            <div id="status">Натисніть «Нова гра»</div>
         </div>
 
-        <!-- ── RIGHT PANEL ── -->
         <div class="right-panel">
             <div class="panel-card" style="flex:1;">
                 <h3>Історія ходів</h3>
                 <div class="move-list" id="moveList"></div>
-            </div>
-        </div>
 
-    </div>
-
-    <!-- Промоція -->
-    <div id="promotionModal">
-        <div class="promo-box">
-            <h3>Виберіть фігуру для промоції</h3>
-            <div class="promo-pieces">
-                <span class="promo-piece" onclick="choosePromotion('q')" title="Ферзь">♛</span>
-                <span class="promo-piece" onclick="choosePromotion('r')" title="Тура">♜</span>
-                <span class="promo-piece" onclick="choosePromotion('b')" title="Слон">♝</span>
-                <span class="promo-piece" onclick="choosePromotion('n')" title="Кінь">♞</span>
+                <div class="game-controls">
+                    <button class="control-btn" onclick="resignGame()" title="Здатися">🏳</button>
+                    <button class="control-btn" title="Хід назад (у розробці)">↩</button>
+                    <button class="control-btn" title="Підказка (у розробці)">💡</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // Автовизначення URL — працює і на localhost і через devtunnels/ngrok
-        const API_URL = location.protocol === 'file:'
-            ? 'http://127.0.0.1:8000'
-            : `${location.protocol}//${location.host}`;
+        let ytPlayer = null;
+        let musicPlaying = false;
+        const API_URL = location.protocol === 'file:' ? 'http://127.0.0.1:8000' : `${location.protocol}//${location.host}`;
+        let board = null, game = null, currentGameId = null, currentLevel = 1, waitingForBot = false, moveHistory = [];
+        const LEVEL_NAMES = { 1: '🌱 Новачок', 2: '🐣 Початківець', 3: '📗 Легкий', 4: '🎯 Нижче середнього', 5: '⚖️ Середній', 6: '🔥 Вище середнього', 7: '💪 Складний', 8: '🏆 Експерт', 9: '⚡ Майстер', 10: '💀 Гросмейстер' };
 
-        // ── Auth badge ──
-        async function checkMe() {
-            const badge = document.getElementById('userBadge');
-            const token = localStorage.getItem('chess_token');
-            if (!badge) return;
-            if (!token) {
-                badge.textContent = 'Гість';
-                return;
-            }
-            try {
-                const res = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) throw new Error();
-                const me = await res.json();
-                badge.textContent = `${me.username} · Elo ${me.rating}`;
-            } catch (_) {
-                badge.textContent = 'Гість';
-            }
-        }
-
-        // ── State ──
-        let board = null;
-        let game = null; // Будемо використовувати для легальних ходів
-        let currentGameId = null;
-        let currentLevel = 5;
-        let waitingForBot = false;
-        let pendingPromoMove = null;
-        let pendingPromoFen = null;
-        let lastHighlightedSquares = [];
-        let moveHistory = [];   // [{human, bot}]
-        let capturedByBot = [];
-        let capturedByHuman = [];
-
-        // Додаємо скрипт chess.js для підсвічування ходів
         const chessScript = document.createElement('script');
         chessScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js';
         document.head.appendChild(chessScript);
+        chessScript.onload = () => { game = new Chess(); };
 
-        chessScript.onload = () => {
-            game = new Chess();
-        };
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player("ytMusic", {
+                height: "0",
+                width: "0",
+                videoId: "r7hCJIC_y6Q",
+                playerVars: {
+                    autoplay: 0,
+                    controls: 0,
+                    loop: 1,
+                    playlist: "r7hCJIC_y6Q"
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
 
-        // ── Level config ──
-        const LEVEL_NAMES = {
-            1: '🌱 Новачок',
-            2: '🐣 Початківець',
-            3: '📗 Легкий',
-            4: '🎯 Нижче середнього',
-            5: '⚖️ Середній',
-            6: '🔥 Вище середнього',
-            7: '💪 Складний',
-            8: '🏆 Експерт',
-            9: '⚡ Майстер',
-            10: '💀 Гросмейстер',
-        };
+        function onPlayerReady(event) {
+            console.log("Youtube Player Ready")
+        }
 
-        // ── Build level buttons ──
+        function toggleMusic() {
+            if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') return;
+            const btn = document.getElementById("musicToggle");
+            if (musicPlaying) {
+                ytPlayer.pauseVideo();
+                btn.textContent = "🔈";
+            } else {
+                ytPlayer.playVideo();
+                btn.textContent = "🔊";
+            }
+            musicPlaying = !musicPlaying;
+        }
+
         function buildLevelGrid() {
-            const grid = document.getElementById('levelGrid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('levelGrid'); grid.innerHTML = '';
             for (let i = 1; i <= 10; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'lvl-btn' + (i === currentLevel ? ' active' : '');
                 btn.textContent = i;
-                btn.title = LEVEL_NAMES[i];
-                btn.onclick = () => selectLevel(i);
+                btn.onclick = () => { currentLevel = i; buildLevelGrid(); };
                 grid.appendChild(btn);
             }
             document.getElementById('levelName').textContent = LEVEL_NAMES[currentLevel];
-            document.getElementById('levelBadge').textContent = `Рівень ${currentLevel}`;
-            document.getElementById('botTagInfo').textContent = LEVEL_NAMES[currentLevel];
         }
 
-        function selectLevel(n) {
-            currentLevel = n;
-            buildLevelGrid();
-            // Якщо гра ще не почалась — просто оновлюємо вибір
-            // Якщо гра вже йде — нічого не перезапускаємо
+        function removeHints() { $('#myBoard [class*="square-"]').removeClass('highlight-hint is-capture'); }
+        function showHint(square) {
+            const $square = $(`#myBoard .square-${square}`);
+            if (game.get(square)) $square.addClass('highlight-hint is-capture');
+            else $square.addClass('highlight-hint');
         }
 
-        // ── Status helpers ──
-        function setStatus(text, cls = '') {
+        function onDragStart(source, piece) {
+            if (waitingForBot || !currentGameId || piece.search(/^b/) !== -1) return false;
+            const moves = game.moves({ square: source, verbose: true });
+            moves.forEach(m => showHint(m.to));
+        }
+
+        function onDrop(source, target) {
+            removeHints();
+            const move = game.move({ from: source, to: target, promotion: 'q' });
+            if (move === null) return 'snapback';
+            const isPlayerCheck = game.in_check();
+            game.undo();
+            sendMove(source + target, 'q', isPlayerCheck);
+        }
+
+        async function startNewGame() {
+            const toggle = document.getElementById("musicToggle");
+            toggle.style.display = "flex";
+
+            if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+                ytPlayer.playVideo();
+                musicPlaying = true;
+                toggle.textContent = "🔊";
+            }
+
+            const token = localStorage.getItem('chess_token');
+            const res = await fetch(`${API_URL}/game/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+                body: JSON.stringify({ level: currentLevel })
+            });
+            const data = await res.json();
+            currentGameId = data.game_id; moveHistory = [];
+            game.reset(); board.start(); buildLevelGrid();
+            setStatus('Твій хід!', '');
+        }
+
+        function setStatus(text, type) {
             const el = document.getElementById('status');
             el.textContent = text;
-            el.className = cls;
+            el.className = type;
         }
 
-        function setTurnIndicator(isHumanTurn) {
-            document.getElementById('tagHuman').classList.toggle('active-turn', isHumanTurn);
-            document.getElementById('tagBot').classList.toggle('active-turn', !isHumanTurn);
-        }
-
-        // ── Highlight ──
-        function highlightLastMove(uciMove) {
-            lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
-            lastHighlightedSquares = [];
-            if (!uciMove || uciMove.length < 4) return;
-            const from = uciMove.slice(0, 2), to = uciMove.slice(2, 4);
-            $(`#myBoard .square-${from}, #myBoard .square-${to}`).addClass('highlight-last');
-            lastHighlightedSquares = [from, to];
-        }
-
-        function clearHighlights() {
-            lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
-            lastHighlightedSquares = [];
-        }
-
-        // ── Move history ──
-        function addMoveToHistory(humanMove, botMove) {
-            moveHistory.push({ human: humanMove, bot: botMove || '' });
-            renderMoveHistory();
-        }
-
-        function renderMoveHistory() {
-            const list = document.getElementById('moveList');
-            list.innerHTML = '';
-            moveHistory.forEach((m, i) => {
-                const row = document.createElement('div');
-                row.className = 'move-row';
-                const isLast = i === moveHistory.length - 1;
-                row.innerHTML = `
-            <span class="move-num">${i + 1}.</span>
-            <span class="move-cell ${isLast ? 'last' : ''}">${m.human}</span>
-            <span class="move-cell bot ${isLast && m.bot ? 'last' : ''}">${m.bot}</span>`;
-                list.appendChild(row);
-            });
-            list.scrollTop = list.scrollHeight;
-        }
-
-        // ── Captured pieces ──
-        const PIECE_SYMBOLS = {
-            'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕',
-            'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛',
-        };
-
-        function computeCaptured(fenBefore, fenAfter) {
-            const countPieces = fen => {
-                const counts = {};
-                fen.split(' ')[0].split('/').join('').split('').forEach(c => {
-                    if (/[pnbrqkPNBRQK]/.test(c)) counts[c] = (counts[c] || 0) + 1;
-                });
-                return counts;
-            };
-            const before = countPieces(fenBefore);
-            const after = countPieces(fenAfter);
-            const captured = [];
-            for (const [piece, cnt] of Object.entries(before)) {
-                const diff = cnt - (after[piece] || 0);
-                for (let i = 0; i < diff; i++) captured.push(piece);
-            }
-            return captured;
-        }
-
-        function renderCaptured(arr, elId) {
-            const el = document.getElementById(elId);
-            el.textContent = arr.map(p => PIECE_SYMBOLS[p] || p).join(' ');
-        }
-
-        // ── Start game ──
-        async function startNewGame() {
-            try {
-                if (currentGameId) {
-                    await fetch(`${API_URL}/game/${currentGameId}`, { method: 'DELETE' }).catch(() => { });
-                }
-
-                const token = localStorage.getItem('chess_token');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
-
-                const res = await fetch(`${API_URL}/game/start`, {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify({ level: currentLevel })
-                });
-                const data = await res.json();
-                currentGameId = data.game_id;
-                waitingForBot = false;
-                moveHistory = [];
-                capturedByBot = [];
-                capturedByHuman = [];
-                if (game) game.reset();
-                renderMoveHistory();
-                renderCaptured([], 'capturedByBot');
-                renderCaptured([], 'capturedByHuman');
-                clearHighlights();
-                board.start();
-                setStatus('Твій хід! (Білі)', '');
-                if (!token) {
-                    const el = document.getElementById('status');
-                    el.textContent += ' · Гість: рейтинг не оновиться';
-                }
-                setTurnIndicator(true);
-                document.getElementById('resignBtn').style.display = 'block';
-                document.getElementById('botTagInfo').textContent = LEVEL_NAMES[currentLevel];
-                document.getElementById('levelBadge').textContent = `Рівень ${currentLevel}`;
-                checkMe();
-            } catch (e) {
-                setStatus("❌ Помилка підключення до сервера", 'check');
-            }
-        }
-
-        // ── Resign ──
-        async function resignGame() {
-            if (!currentGameId) return;
-            if (!confirm('Ви впевнені, що хочете здатися?')) return;
-            await fetch(`${API_URL}/game/${currentGameId}`, { method: 'DELETE' }).catch(() => { });
-            currentGameId = null;
-            waitingForBot = false;
-            board.start();
-            clearHighlights();
-            setStatus('Ви здалися. Натисни «Нова гра».', 'draw');
-            setTurnIndicator(false);
-            document.getElementById('resignBtn').style.display = 'none';
-        }
-
-        // ── Promotion ──
-        async function choosePromotion(piece) {
-            document.getElementById('promotionModal').classList.remove('open');
-            if (!pendingPromoMove) return;
-            const move = pendingPromoMove, fen = pendingPromoFen;
-            pendingPromoMove = pendingPromoFen = null;
-            await sendMove(move, piece, fen);
-        }
-
-        // ── Send move ──
-        async function sendMove(move, promotion = 'q', fenBeforeMove) {
+        async function sendMove(move, promotion, isPlayerCheck) {
             waitingForBot = true;
-            setStatus('🤖 Stockfish думає...', 'thinking');
-            setTurnIndicator(false);
+            if (isPlayerCheck) setStatus('ВИ ПОСТАВИЛИ ШАХ!', 'player-check');
+            else setStatus('Stockfish думає...', '');
 
-            const startFen = fenBeforeMove || board.fen();
+            game.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: promotion });
+            board.position(game.fen(), false);
 
             try {
                 const token = localStorage.getItem('chess_token');
-                const headers = { 'Content-Type': 'application/json' };
-                if (token) headers['Authorization'] = `Bearer ${token}`;
                 const res = await fetch(`${API_URL}/game/play/${currentGameId}`, {
                     method: 'POST',
-                    headers: headers,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
                     body: JSON.stringify({ move, promotion, level: currentLevel })
                 });
                 const data = await res.json();
 
-                if (!res.ok) {
-                    setStatus('❌ Нелегальний хід! Спробуй ще раз.', 'check');
-                    board.position(startFen);
-                    waitingForBot = false;
-                    setTurnIndicator(true);
-                    return;
-                }
-
-                // Крок 1 — показуємо хід гравця
-                if (data.fen_after_human) {
-                    board.position(data.fen_after_human);
-                    if (game) game.load(data.fen_after_human);
-                    // Оновлюємо захоплені фігури гравцем
-                    const newCaps = computeCaptured(startFen, data.fen_after_human);
-                    capturedByHuman.push(...newCaps.filter(p => p === p.toLowerCase())); // чорні
-                    renderCaptured(capturedByHuman, 'capturedByHuman');
-                }
-
-                if (data.status === 'game_over' && !data.bot_move) {
-                    // Гравець поставив мат/пат
-                    board.position(data.fen);
-                    if (game) game.load(data.fen);
-                    finishGame(data);
-                    waitingForBot = false;
-                    return;
-                }
-
-                // Крок 2 — через 600мс показуємо хід бота
                 setTimeout(() => {
-                    board.position(data.fen);
-                    if (game) game.load(data.fen);
-                    if (data.bot_move) {
-                        // Оновлюємо захоплені фігури ботом
-                        const botCaps = computeCaptured(data.fen_after_human || startFen, data.fen);
-                        capturedByBot.push(...botCaps.filter(p => p === p.toUpperCase())); // білі
-                        renderCaptured(capturedByBot, 'capturedByBot');
-
-                        setTimeout(() => highlightLastMove(data.bot_move), 300);
-                    }
-
-                    // Додаємо в історію ходів
-                    addMoveToHistory(move, data.bot_move || '');
+                    board.position(data.fen, true);
+                    game.load(data.fen);
+                    if (data.bot_move) moveHistory.push({ h: move, b: data.bot_move });
 
                     if (data.status === 'game_over') {
                         finishGame(data);
                     } else {
-                        setTurnIndicator(true);
-                        if (data.is_check) {
-                            setStatus('⚠️ ШАХ! Твій хід!', 'check');
-                        } else {
-                            setStatus('Твій хід!', '');
-                        }
+                        if (data.is_check) setStatus('ВАМ ШАХ!', 'check');
+                        else if (game.in_check()) setStatus('БОТУ ШАХ!', 'player-check');
+                        else setStatus('Твій хід!', '');
                     }
                     waitingForBot = false;
-                }, 600);
-
-            } catch (e) {
-                console.error(e);
-                setStatus('❌ Помилка сервера!', 'check');
-                board.position(startFen);
-                waitingForBot = false;
-                setTurnIndicator(true);
-            }
+                    updateUI();
+                }, 800);
+            } catch (e) { waitingForBot = false; }
         }
 
         function finishGame(data) {
-            let msg = '', cls = '';
-            if (data.result === '1-0') { msg = '🏆 Ви перемогли!'; cls = 'win'; }
-            else if (data.result === '0-1') { msg = '🤖 Stockfish переміг!'; cls = 'lose'; }
-            else { msg = '🤝 Нічия!'; cls = 'draw'; }
-            if (data.is_check) msg = '♚ МАТ! ' + msg;
-            setStatus(msg, cls);
-            setTurnIndicator(false);
+            if (data.result === '1-0') setStatus('Мат! Вітаю з перемогою!', 'win');
+            else if (data.result === '0-1') setStatus('Мат! Stockfish переміг', 'lose');
+            else setStatus('Нічия!', '');
             currentGameId = null;
-            document.getElementById('resignBtn').style.display = 'none';
         }
 
-        // ── onDragStart ──
-        function onDragStart(source, piece, position, orientation) {
-            if (waitingForBot || !currentGameId) return false;
-            if (piece.search(/^b/) !== -1) return false; // Гравцю можна тягати тільки білі
-
-            if (game) {
-                const moves = game.moves({
-                    square: source,
-                    verbose: true
+        // СПЕЦІАЛЬНА ФУНКЦІЯ ДЛЯ ЗДАЧІ
+        async function resignGame() {
+            if (!currentGameId) return;
+            if (confirm("Ви впевнені, що хочете здатися?")) {
+                const token = localStorage.getItem('chess_token');
+                const res = await fetch(`${API_URL}/game/resign/${currentGameId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
                 });
-                if (moves.length === 0) return;
-
-                moves.forEach(m => {
-                    const isCapture = m.flags.includes('c') || m.flags.includes('e');
-                    $(`#myBoard .square-${m.to}`).addClass('highlight-hint' + (isCapture ? ' is-capture' : ''));
-                });
+                const data = await res.json();
+                setStatus('ВИ ЗДАЛИСЯ, Stockfish переміг', 'lose');
+                currentGameId = null;
+                waitingForBot = false;
             }
         }
 
-        // ── onDrop ──
-        function onDrop(source, target, piece) {
-            $(`#myBoard .square-55d63, #myBoard .square-2b130`).removeClass('highlight-hint is-capture');
-
-            if (waitingForBot) return 'snapback';
-            if (!currentGameId) {
-                alert("Натисни «Нова гра»!");
-                return 'snapback';
-            }
-
-            if (game) {
-                const move = game.move({
-                    from: source,
-                    to: target,
-                    promotion: 'q' // default for check
-                });
-                if (move === null) return 'snapback';
-                game.undo(); // undo for sendMove logic
-            }
-
-            const fenBeforeMove = board.fen();
-            const moveStr = source + target;
-            const isPawn = piece && piece[1] === 'P';
-            const isPromoRank = (piece[0] === 'w' && target[1] === '8') ||
-                (piece[0] === 'b' && target[1] === '1');
-
-            if (isPawn && isPromoRank) {
-                pendingPromoMove = moveStr;
-                pendingPromoFen = fenBeforeMove;
-                document.getElementById('promotionModal').classList.add('open');
-                return 'snapback';
-            }
-
-            sendMove(moveStr, 'q', fenBeforeMove);
+        function updateUI() {
+            const list = document.getElementById('moveList');
+            list.innerHTML = moveHistory.map((m, i) => `<div class="move-row"><span>${i + 1}.</span><span>${m.h}</span><span style="color:#93c5fd">${m.b}</span></div>`).join('');
+            list.scrollTop = list.scrollHeight;
         }
 
-        // ── Init ──
         const config = {
-            draggable: true,
-            position: 'start',
-            onDragStart: onDragStart,
-            onDrop: onDrop,
-            onSnapEnd: () => { if (board && game) board.position(game.fen()); },
+            draggable: true, position: 'start', onDragStart, onDrop,
+            moveSpeed: 'fast', snapSpeed: 0,
+            onSnapEnd: () => board.position(game.fen()),
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
-
         board = Chessboard('myBoard', config);
         buildLevelGrid();
-        checkMe();
     </script>
+
 </body>
 
 </html>

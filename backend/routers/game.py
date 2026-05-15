@@ -224,7 +224,7 @@ def get_game_state(game_id: str):
         "black_time": b_time
     }
 
-@router.delete("/{game_id}")
+@router.post("/resign/{game_id}")
 def resign_game(game_id: str, db: Session = Depends(get_db)):
     """Здатися / завершити гру достроково"""
     if game_id not in active_games:
