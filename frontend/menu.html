@@ -660,6 +660,9 @@
                     if (docStyle) {
                         const newStyleTag = document.createElement('style');
                         newStyleTag.id = 'overlayDynamicStyles';
+                        let cleanCss = docStyle.innerHTML
+                            .replace(/body\s*\{/gi, '#activePageOverlay {')
+                            .replace(/\*\s*\{/g, '#activePageOverlay * {');
                         newStyleTag.innerHTML = docStyle.innerHTML;
                         document.head.appendChild(newStyleTag); // Вживляємо стилі в голову сторінки
                     }
@@ -678,6 +681,8 @@
                     overlayWrapper.appendChild(newContent);
 
                     document.body.appendChild(overlayWrapper);
+
+                    window.scrollTo(0, 0);
 
                     // 4. Запускаємо JavaScript-логіку завантаженої сторінки (БД, профілі, інпути)
                     const scripts = doc.querySelectorAll('script');
@@ -702,6 +707,7 @@
                                 const currentStyles = document.getElementById('overlayDynamicStyles');
                                 if (currentStyles) currentStyles.remove(); // Видаляємо тимчасові стилі профілю
                                 if (gameContainer) gameContainer.style.display = 'flex'; // Повертаємо головне меню
+                                window.scrollTo(0, 0);
                             };
                         }
 

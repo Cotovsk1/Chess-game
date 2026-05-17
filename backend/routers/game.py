@@ -1,6 +1,7 @@
 
 import uuid
 import chess
+import random
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
@@ -30,6 +31,15 @@ def get_guest_player_id(db: Session) -> int:
     res = db.query(models.Player).filter_by(username="Guest").first()
     if not res:
         res = models.Player(username="Guest", email="guest@example.com", password_hash="")
+        db.add(res)
+        db.commit()
+        db.refresh(res)
+    return res.id
+
+def get_bot_player_id(db: Session) -> int:
+    res = db.query(models.Player).filter_by(username="Stockfish").first()
+    if not res:
+        res = models.Player(username="Stockfish", email="bot@example.com", password_hash="")
         db.add(res)
         db.commit()
         db.refresh(res)
@@ -110,13 +120,18 @@ def record_move(db: Session, game_id: int, uci_move: str, move_number: int):
         db.commit()
 
 @router.post("/start")
-def start_game(
+async def start_game(
+    http_request: Request,
     request: StartGameRequest = None,
     db: Session = Depends(get_db),
     user: models.Player = Depends(get_optional_user)
 ):
     level = request.level if request else 5
     tc_id = request.time_control_id if request else None
+    color_pref = request.color if request else "w"
+    
+    if color_pref == "random":
+        color_pref = random.choice(["w", "b"])
     
     initial_time = None
     increment = 0
@@ -128,29 +143,56 @@ def start_game(
             increment = tc.increment_sec
 
     game_id = str(uuid.uuid4())
+    
+    human_id = user.id if user else get_guest_player_id(db)
 
     # Створюємо гру в БД
     db_game = models.Game(
         result_id=get_or_create_game_result(db, "InProgress"), 
-        white_player_id=user.id if user else get_guest_player_id(db),
+        white_player_id=human_id if color_pref == "w" else get_bot_player_id(db),
+        black_player_id=human_id if color_pref == "b" else None,
         time_control_id=tc_id if tc_id else get_default_tc_id(db)
     )
     db.add(db_game)
     db.commit()
     db.refresh(db_game)
 
-    active_games[game_id] = ChessGame(
+    new_game = ChessGame(
         level=level, 
         db_id=db_game.id, 
         initial_time=initial_time, 
         increment=increment
     )
-    active_games[game_id].white_player_id = user.id if user else None
+    if color_pref == "w":
+        new_game.white_player_id = human_id
+        new_game.black_player_id = None
+    else:
+        new_game.white_player_id = get_bot_player_id(db)
+        new_game.black_player_id = human_id
+        
+    active_games[game_id] = new_game
+
+    bot_move_str = None
+    if color_pref == "b":
+        # Бот робить перший хід
+        try:
+            engine = http_request.app.state.engine
+            engine_lock = getattr(http_request.app.state, "engine_lock", None)
+            bot_strategy = StrategyFactory.get_strategy("stockfish", engine=engine, level=level, lock=engine_lock)
+            bot_move = await new_game.execute_move(bot_strategy)
+            bot_move_str = bot_move.uci()
+            await run_in_threadpool(record_move, db, db_game.id, bot_move_str, 1)
+        except Exception as e:
+            pass # Якщо рушій не відповів, гравець залишиться перед порожньою дошкою або помилка.
+            
     return {
         "game_id": game_id, 
         "message": "Нова гра створена!", 
         "level": level,
-        "time_control": {"initial": initial_time, "increment": increment} if initial_time else None
+        "time_control": {"initial": initial_time, "increment": increment} if initial_time else None,
+        "player_color": color_pref,
+        "fen": new_game.board.fen(),
+        "bot_move": bot_move_str
     }
 
 @router.post("/start_custom")
@@ -190,7 +232,7 @@ def start_custom_game(
         initial_time=initial_time, 
         increment=increment
     )
-    new_game.white_player_id = user.id if user else None
+    new_game.white_player_id = user.id if user else get_guest_player_id(db)
     new_game.board = board
     active_games[game_id] = new_game
     return {

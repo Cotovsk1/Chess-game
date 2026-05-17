@@ -18,9 +18,9 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            /* ПОВЕРНУЛИ МЕНЮ ДОГОРИ */
             align-items: flex-start;
-            padding: 60px 20px;
+            /* ВИПРАВЛЕНО: Збільшено верхній відступ до 130px, щоб опустити картку нижче від стелі */
+            padding: 130px 20px 60px 20px;
         }
 
         .edit-container {
@@ -31,6 +31,7 @@
             max-width: 650px;
             padding: 30px;
             max-height: 700px;
+            margin-top: 60px;
         }
 
         .back-link {
@@ -276,7 +277,8 @@
 <body>
 
     <div class="edit-container">
-        <a href="/ui/profile.html" class="back-link">Скасувати</a>
+        <a href="/ui/menu.html?skipStart=true" class="back-link"
+            onclick="if(typeof window.loadPageAsOverlay === 'function') { event.preventDefault(); window.loadPageAsOverlay('/ui/profile.html'); }">Скасувати</a>
 
         <h2>Налаштування профілю</h2>
         <p class="subtitle">Оновіть інформацію свого акаунту</p>
@@ -326,6 +328,7 @@
             const isFile = location.protocol === 'file:';
             const baseUrl = isFile ? 'http://127.0.0.1:8000' : `${location.protocol}//${location.host}`;
             let localSelectedFile = null;
+            let isPhotoDeleted = false; // ТРИМАЄМО СТАН: чи було видалено аватарку
 
             window.showConfirmZone = function () {
                 document.getElementById('logoutBtn').style.display = 'none';
@@ -346,6 +349,7 @@
                 const input = document.getElementById('fileInput');
                 if (input.files && input.files[0]) {
                     localSelectedFile = input.files[0];
+                    isPhotoDeleted = false; // Якщо вибрали новий файл, скидаємо прапорець видалення
                     const reader = new FileReader();
                     reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
                     reader.readAsDataURL(localSelectedFile);
@@ -383,9 +387,16 @@
 
                 const formData = new FormData();
                 formData.append('username', username);
-                // ВИПРАВЛЕНО: статус_text замість status
                 formData.append('status_text', statusText);
-                if (localSelectedFile) formData.append('file', localSelectedFile);
+
+                // ВИПРАВЛЕНО: Якщо юзер натиснув "Видалити фото", відправляємо пусту строку замість файлу,
+                // щоб бекенд затер старий шлях в базі даних. Якщо завантажив нове — шлемо файл.
+                if (isPhotoDeleted) {
+                    formData.append('delete_avatar', 'true'); // або передаємо пусте поле залежно від логіки FastAPI
+                    formData.append('file', '');
+                } else if (localSelectedFile) {
+                    formData.append('file', localSelectedFile);
+                }
 
                 try {
                     const res = await fetch(`${baseUrl}/auth/update`, {
@@ -396,7 +407,22 @@
                     if (res.ok) {
                         msgBlock.style.color = '#81b64c';
                         msgBlock.textContent = "Зміни збережено успішно!";
-                        setTimeout(() => { window.location.href = '/ui/profile.html'; }, 600);
+                        setTimeout(() => {
+                            // ПЕРЕД ТИМ ЯК ЗАКРИТИ ОВЕРЛЕЙ, ОНОВЛЮЄМО ДАНІ НА СТОРІНЦІ ПРОФІЛЮ
+                            if (window.parent && typeof window.parent.loadProfile === 'function') {
+                                window.parent.loadProfile();
+                            } else if (typeof window.loadProfile === 'function') {
+                                window.loadProfile();
+                            }
+                            // Повертаємося назад на профіль
+                            if (window.parent && typeof window.parent.loadPageAsOverlay === 'function') {
+                                window.parent.loadPageAsOverlay('/ui/profile.html');
+                            } else if (typeof window.loadPageAsOverlay === 'function') {
+                                window.loadPageAsOverlay('/ui/profile.html');
+                            } else {
+                                window.location.href = '/ui/profile.html';
+                            }
+                        }, 600);
                     } else {
                         const data = await res.json();
                         msgBlock.style.color = '#e06666';
@@ -406,9 +432,10 @@
             };
 
             window.deletePhoto = function () {
-                if (confirm("Видалити фото?")) {
+                if (confirm("Видалити фото профілю?")) {
                     document.getElementById('avatarPreview').src = 'https://www.w3schools.com/howto/img_avatar.png';
                     localSelectedFile = null;
+                    isPhotoDeleted = true; // Фіксуємо факт видалення картинки
                 }
             };
 
