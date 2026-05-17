@@ -28,7 +28,6 @@
             flex-direction: column;
             gap: 30px;
             padding-top: 50px;
-            /* ДОДАНО: Відступ зверху для всього профілю */
         }
 
         .btn-back {
@@ -167,6 +166,31 @@
             font-size: 1.8em;
             font-weight: 800;
             color: #10b981;
+        }
+
+        /* ДОДАНІ СТИЛІ ДЛЯ СКРОЛЛБАРУ ІСТОРІЇ ПАРТІЙ */
+        .history-scroll-container {
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 4px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.5);
         }
 
         .history-table {
@@ -373,7 +397,8 @@
                 <div class="user-status" id="userStatus">Граймо в шахи!</div>
                 <div class="user-meta" id="userMeta">Приєднався: щойно</div>
             </div>
-            <button class="btn-edit" onclick="window.location.href = '/ui/edit_profile.html';">Редагувати</button>
+            <button class="btn-edit"
+                onclick="if(typeof window.loadPageAsOverlay === 'function') { window.loadPageAsOverlay('/ui/edit_profile.html'); } else { window.location.href = '/ui/edit_profile.html'; }">Редагувати</button>
         </div>
 
         <div class="profile-grid">
@@ -383,22 +408,25 @@
                     <span>Поточний рейтинг:</span>
                     <span class="rating-value" id="userRating">0 Elo</span>
                 </div>
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Суперник</th>
-                            <th>Результат</th>
-                            <th>Ходів</th>
-                            <th>Дата</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                        <tr>
-                            <td colspan="4" style="color: #64748b; text-align: center; padding: 20px;">Завантаження
-                                історії...</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+                <div class="history-scroll-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Суперник</th>
+                                <th>Результат</th>
+                                <th>Ходів</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr>
+                                <td colspan="4" style="color: #64748b; text-align: center; padding: 20px;">Завантаження
+                                    історії...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 30px;">
@@ -445,7 +473,8 @@
                 return baseUrl + (url.startsWith('/') ? url : '/' + url);
             }
 
-            async function loadProfile() {
+            // Робимо функцію глобальною, щоб її можна було викликати з оверлею
+            window.loadProfile = async function () {
                 try {
                     const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
 
@@ -454,19 +483,18 @@
                     }
 
                     const user = await res.json();
-
                     document.getElementById('userName').textContent = user.username;
                     document.getElementById('userRating').textContent = `${user.rating} Elo`;
-                    document.getElementById('userStatus').textContent = user.status || "Граймо в шахи!";
+                    // Перевіряємо обидва можливі ключі від бекенду на випадок зсуву схем
+                    const currentStatus = user.status || user.status_text || "Граймо в шахи!";
+                    document.getElementById('userStatus').textContent = currentStatus;
 
                     if (user.created_at) {
                         const date = new Date(user.created_at).toLocaleDateString('uk-UA');
                         document.getElementById('userMeta').textContent = `Гравець з клубу · Приєднався: ${date}`;
                     }
-
                     document.getElementById('userAvatar').src = formatAvatarUrl(user.avatar_url);
                     document.getElementById('shareLinkValue').textContent = `${window.location.origin}/ui/menu.html`;
-
                     loadRealHistory();
                     loadRealFriends();
                 } catch (err) {
@@ -475,7 +503,6 @@
                     window.location.href = '/ui/menu.html';
                 }
             }
-
             async function loadRealHistory() {
                 const body = document.getElementById('historyBody');
                 try {
@@ -546,7 +573,7 @@
                     .catch(() => alert("Помилка відправки."));
             };
 
-            loadProfile();
+            window.loadProfile();
         })();
     </script>
 </body>

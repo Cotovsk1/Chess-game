@@ -26,9 +26,9 @@
 
         /* ── HEADER ── */
         header {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
             padding: 16px 32px;
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(10px);
@@ -58,13 +58,17 @@
         }
 
         header h1 {
+            grid-column: 2;
             font-size: 1.25em;
             font-weight: 700;
             letter-spacing: 0.5px;
             color: #fff;
+            text-align: center;
         }
 
         #connBadge {
+            grid-column: 3;
+            justify-self: end;
             font-size: 0.85em;
             font-weight: 600;
             padding: 6px 16px;
@@ -342,6 +346,10 @@
             transition: all 0.3s;
         }
 
+        .player-tag div:nth-child(2) {
+            flex-grow: 1;
+        }
+
         .player-tag .icon {
             font-size: 1.6em;
             filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
@@ -534,31 +542,67 @@
             border-radius: 10px;
         }
 
+        /* ── ПОДКАЗКИ ХОДІВ (МАРКЕРИ ТА КІЛЬЦЯ) ── */
+        .highlight-hint {
+            position: relative;
+        }
+
+        /* точка для порожньої клітинки */
+        .highlight-hint::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26%;
+            height: 26%;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* кільце для клітинки із фігурою суперника */
+        .highlight-hint.is-capture::after {
+            width: 82%;
+            height: 82%;
+            background: transparent;
+            border: 5px solid rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+        }
+
         /* ── HIGHLIGHT ── */
         .highlight-last {
             background: rgba(255, 255, 0, 0.4) !important;
             box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* Custom board pieces (Beautiful contrast for dark theme) */
         .square-55d63 {
             background-color: #334155 !important;
-            /* Deep Slate */
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-            /* Більш чітка рамка */
         }
 
         .square-2b130 {
             background-color: #94a3b8 !important;
-            /* Lighter Slate */
             box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
-            /* Більш чітка рамка */
         }
 
-        /* Coordinate labels color adjustment for better visibility */
         .notation-322f9 {
             color: #f1f5f9 !important;
             opacity: 0.5;
+        }
+
+        /* СТИЛІ ДЛЯ ТАЙМЕРІВ МУЛЬТИПЛЕЄРА */
+        .timer-display {
+            font-family: monospace;
+            font-size: 1.1em;
+            font-weight: 700;
+            background: #1e293b;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+            margin-right: 12px;
         }
 
         /* ── PROMOTION MODAL ── */
@@ -621,17 +665,13 @@
 <body>
 
     <header>
-        <a href="/ui/menu.html">← Меню</a>
         <h1>👥 Мультиплеєр</h1>
         <span id="connBadge">● Не підключено</span>
     </header>
 
     <div class="game-layout">
 
-        <!-- ── LEFT PANEL ── -->
         <div class="left-panel">
-
-            <!-- Підключення -->
             <div class="panel-card">
                 <h3>Підключення</h3>
                 <button class="action-btn btn-create" onclick="createRoom()"><span>＋</span> Створити кімнату</button>
@@ -639,14 +679,12 @@
                 <button class="action-btn btn-join" onclick="joinRoom()"><span>→</span> Підключитися</button>
             </div>
 
-            <!-- Попередження file:// -->
             <div id="warningBanner">
                 ⚠️ Відкрито як файл.<br>
                 Для WS потрібно через сервер:<br>
                 <a href="http://127.0.0.1:8000/ui/multiplayer.html">127.0.0.1:8000/ui/multiplayer.html</a>
             </div>
 
-            <!-- Room ID + link -->
             <div class="room-id-box" id="roomIdBox">
                 <div class="id-label">ID кімнати:</div>
                 <div id="roomIdText"
@@ -657,7 +695,6 @@
                 <button class="copy-btn" onclick="copyFriendLink()">🔗 Копіювати посилання</button>
             </div>
 
-            <!-- Прогрес підключення -->
             <div class="panel-card">
                 <h3>Статус</h3>
                 <div class="step-list">
@@ -676,19 +713,20 @@
                 </div>
             </div>
 
-            <!-- Меню -->
-            <button class="action-btn btn-menu" onclick="location.href='/ui/menu.html'">← Повернутись в меню</button>
+            <button class="action-btn btn-menu"
+                onclick="if(typeof window.loadPageAsOverlay === 'function') { const overlay = document.getElementById('activePageOverlay'); if(overlay) overlay.remove(); const currentStyles = document.getElementById('overlayDynamicStyles'); if(currentStyles) currentStyles.remove(); const gameContainer = document.querySelector('.game-container'); if(gameContainer) gameContainer.style.display = 'flex'; window.scrollTo(0, 0); } else { location.href='/ui/menu.html?skipStart=true'; }">←
+                Повернутись в меню</button>
         </div>
 
-        <!-- ── BOARD ── -->
         <div class="board-area">
 
-            <!-- Суперник (вгорі) -->
             <div class="player-tag waiting" id="tagOpponent">
                 <span class="icon">👤</span>
                 <div>
                     <div class="name" id="opponentName">Очікуємо суперника...</div>
                 </div>
+
+                <span id="opponentTimer" class="timer-display">10:00</span>
                 <div class="tag-right">
                     <span class="tag-color" id="opponentColor"></span>
                     <span class="tag-status" id="opponentStatus">⏳</span>
@@ -697,12 +735,13 @@
 
             <div id="myBoard"></div>
 
-            <!-- Я (внизу) -->
             <div class="player-tag" id="tagMe">
                 <span class="icon">🙋</span>
                 <div>
                     <div class="name">Ви</div>
                 </div>
+
+                <span id="meTimer" class="timer-display">10:00</span>
                 <div class="tag-right">
                     <span class="tag-color" id="myColorLabel"></span>
                     <span class="tag-status" id="myStatus">–</span>
@@ -712,14 +751,12 @@
             <div id="status">Створіть кімнату або підключіться до існуючої</div>
         </div>
 
-        <!-- ── RIGHT PANEL ── -->
         <div class="right-panel">
             <div class="panel-card" style="flex:1;">
                 <h3>Історія ходів</h3>
                 <div class="move-list" id="moveList"></div>
             </div>
 
-            <!-- Захоплені фігури -->
             <div class="panel-card">
                 <h3>Захоплено суперником</h3>
                 <div id="capturedByOpp" class="captured-box"></div>
@@ -729,10 +766,8 @@
                 <div id="capturedByMe" class="captured-box"></div>
             </div>
         </div>
-
     </div>
 
-    <!-- Промоція -->
     <div id="promotionModal">
         <div class="promo-box">
             <h3>Виберіть фігуру для промоції</h3>
@@ -748,25 +783,28 @@
     <script>
         const isFileProtocol = location.protocol === 'file:';
         const HOST = isFileProtocol ? '127.0.0.1:8000' : location.host;
-        // wss:// коли сторінка відкрита по https (devtunnels), ws:// для localhost
         const WS_PROTO = location.protocol === 'https:' ? 'wss' : 'ws';
         const API_URL = `${isFileProtocol ? 'http' : location.protocol.replace(':', '')}://${HOST}`;
         const WS_URL = `${WS_PROTO}://${HOST}/ws/play/`;
 
         if (isFileProtocol) document.getElementById('warningBanner').style.display = 'block';
 
-        // ── State ──
         let board = null;
         let ws = null;
         let currentGameId = null;
-        let myColor = null;   // 'white' | 'black'
+        let myColor = null;
         let myTurn = false;
         let pendingPromoMove = null;
         let lastHighlightedSquares = [];
         let moveHistory = [];
-        let prevFen = null;    // для підрахунку захоплених
+        let prevFen = null;
 
-        // Додаємо скрипт chess.js для підсвічування ходів
+        // Перемінні для управління мультиплеєрним годинником
+        let timerInterval = null;
+        let whiteTime = 600; // 10 хв для білих
+        let blackTime = 600; // 10 хв для чорних
+        let isGameRunning = false;
+
         const chessScript = document.createElement('script');
         chessScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js';
         document.head.appendChild(chessScript);
@@ -779,7 +817,6 @@
             'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛',
         };
 
-        // ── Steps UI ──
         function setStep(n) {
             ['step1', 'step2', 'step3', 'step4'].forEach((id, i) => {
                 const el = document.getElementById(id);
@@ -788,21 +825,18 @@
             });
         }
 
-        // ── Connection badge ──
         function setConnBadge(online) {
             const b = document.getElementById('connBadge');
             b.textContent = online ? '● Підключено' : '● Не підключено';
             b.className = online ? 'online' : '';
         }
 
-        // ── Status ──
         function setStatus(text, cls = '') {
             const el = document.getElementById('status');
             el.textContent = text;
             el.className = cls;
         }
 
-        // ── Turn indicator ──
         function setTurnIndicator(isMyTurn) {
             document.getElementById('tagMe').classList.toggle('active-turn', isMyTurn);
             document.getElementById('tagOpponent').classList.toggle('active-turn', !isMyTurn);
@@ -810,7 +844,6 @@
             document.getElementById('opponentStatus').textContent = isMyTurn ? '⏳ Чекаємо' : '▶ Ходить';
         }
 
-        // ── Highlight ──
         function highlightLastMove(uciMove) {
             lastHighlightedSquares.forEach(sq => $(`#myBoard .square-${sq}`).removeClass('highlight-last'));
             lastHighlightedSquares = [];
@@ -820,9 +853,74 @@
             lastHighlightedSquares = [from, to];
         }
 
-        // ── Move history ──
+        function removeHints() {
+            $('#myBoard [class*="square-"]').removeClass('highlight-hint is-capture');
+        }
+
+        function showHint(square) {
+            const $square = $(`#myBoard .square-${square}`);
+            // Якщо на клітинці стоїть фігура, додаємо клас взяття (кільце)
+            if (game && game.get(square)) {
+                $square.addClass('highlight-hint is-capture');
+            } else {
+                $square.addClass('highlight-hint');
+            }
+        }
+
+        // КЕРУВАННЯ ТАЙМЕРАМИ В МУЛЬТИПЛЕЄРІ
+        function startMultiplayerTimer() {
+            clearInterval(timerInterval);
+            whiteTime = 600;
+            blackTime = 600;
+            isGameRunning = true;
+            updateTimerUI();
+
+            timerInterval = setInterval(() => {
+                if (!isGameRunning || !game) return;
+
+                // Перевіряємо чий зараз хід за допомогою вбудованого методу chess.js
+                if (game.turn() === 'w') {
+                    whiteTime--;
+                    if (whiteTime <= 0) handleTimeOut('white');
+                } else {
+                    blackTime--;
+                    if (blackTime <= 0) handleTimeOut('black');
+                }
+                updateTimerUI();
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const format = (time) => {
+                const min = Math.floor(time / 60).toString().padStart(2, '0');
+                const sec = (time % 60).toString().padStart(2, '0');
+                return `${min}:${sec}`;
+            };
+
+            // Розумно розподіляємо змінні часу на табло залежно від того, який колір отримав гравець
+            if (myColor === 'white') {
+                document.getElementById('meTimer').textContent = format(whiteTime);
+                document.getElementById('opponentTimer').textContent = format(blackTime);
+            } else {
+                document.getElementById('meTimer').textContent = format(blackTime);
+                document.getElementById('opponentTimer').textContent = format(whiteTime);
+            }
+        }
+
+        function handleTimeOut(losingColor) {
+            clearInterval(timerInterval);
+            isGameRunning = false;
+            setTurnIndicator(false);
+            if (myColor === losingColor) {
+                setStatus('💔 ЧАС ВИЧЕРПАНО! Ви програли!', 'lose');
+            } else {
+                setStatus('🏆 ЧАС СУПЕРНИКА ВИЧЕРПАНО! Ви перемогли!', 'win');
+            }
+        }
+
         function addMove(uci, isMe) {
             const lastEntry = moveHistory[moveHistory.length - 1];
+
             if (isMe) {
                 moveHistory.push({ white: myColor === 'white' ? uci : '', black: myColor === 'black' ? uci : '', p1: uci, p2: '' });
             } else {
@@ -840,11 +938,6 @@
         function renderMoveHistory() {
             const list = document.getElementById('moveList');
             list.innerHTML = '';
-            // rebuild as pairs: white move / black move
-            const pairs = [];
-            let pair = null;
-            // We track moves in order via a flat array instead
-            list.innerHTML = '';
             moveHistory.forEach((m, i) => {
                 const row = document.createElement('div');
                 row.className = 'move-row';
@@ -854,10 +947,10 @@
                 <span class="move-cell p2 ${isLast && m.p2 ? 'last' : ''}">${m.p2 || ''}</span>`;
                 list.appendChild(row);
             });
+
             list.scrollTop = list.scrollHeight;
         }
 
-        // ── Captured ──
         function computeCaptured(fenBefore, fenAfter) {
             const count = fen => {
                 const c = {};
@@ -866,6 +959,7 @@
                 });
                 return c;
             };
+
             const b = count(fenBefore), a = count(fenAfter);
             const caps = [];
             for (const [p, n] of Object.entries(b)) {
@@ -876,6 +970,7 @@
 
         let capturedByOpp = [], capturedByMe = [];
         function updateCaptured(fenBefore, fenAfter, moverIsMe) {
+
             if (!fenBefore) return;
             const caps = computeCaptured(fenBefore, fenAfter);
             if (moverIsMe) {
@@ -887,27 +982,24 @@
             document.getElementById('capturedByOpp').textContent = capturedByOpp.map(p => PIECE_SYMBOLS[p] || p).join(' ');
         }
 
-        // ── Room ID helpers ──
         let _friendUrl = '';
+
         function showRoomId(id) {
             _friendUrl = `http://${HOST}/ui/multiplayer.html?join=${id}`;
             document.getElementById('roomIdText').textContent = id;
             document.getElementById('roomIdBox').style.display = 'block';
         }
         function copyRoomId() {
-            navigator.clipboard.writeText(currentGameId)
-                .then(() => alert('ID скопійовано!'));
+            navigator.clipboard.writeText(currentGameId).then(() => alert('ID скопійовано!'));
         }
         function copyFriendLink() {
-            navigator.clipboard.writeText(_friendUrl)
-                .then(() => alert('Посилання скопійовано!'));
+            navigator.clipboard.writeText(_friendUrl).then(() => alert('Посилання скопійовано!'));
         }
 
-        // ── Create room ──
         async function createRoom() {
+
             try {
                 setStep(1);
-
                 const token = localStorage.getItem('chess_token');
                 const headers = {};
                 if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -916,6 +1008,7 @@
                     method: 'POST',
                     headers: headers
                 });
+
                 const data = await res.json();
                 currentGameId = data.game_id;
                 showRoomId(currentGameId);
@@ -925,9 +1018,9 @@
             } catch (e) {
                 setStatus('❌ Помилка підключення до сервера', 'error');
             }
+
         }
 
-        // ── Join room ──
         function joinRoom() {
             const id = document.getElementById('joinId').value.trim();
             if (!id) { alert('Введіть ID кімнати!'); return; }
@@ -937,7 +1030,6 @@
             connectWebSocket(id);
         }
 
-        // ── Auto-join from URL ──
         window.addEventListener('load', () => {
             buildLevelGrid();
             const joinId = new URLSearchParams(location.search).get('join');
@@ -947,15 +1039,13 @@
             }
         });
 
-        function buildLevelGrid() { /* no-op for multiplayer */ }
+        function buildLevelGrid() { }
 
-        // ── WebSocket ──
         function connectWebSocket(gameId) {
             if (ws) ws.close();
             const token = localStorage.getItem('chess_token') || '';
             const url = `${WS_URL}${gameId}${token ? '?token=' + token : ''}`;
             ws = new WebSocket(url);
-
             ws.onopen = () => {
                 setConnBadge(true);
                 setStep(3);
@@ -975,10 +1065,7 @@
                     prevFen = data.fen;
                     if (game) game.load(data.fen);
 
-                    // Якщо чорні — перевертаємо дошку
                     if (myColor === 'black') board.flip();
-
-                    // Оновлюємо теги
                     const myColorLabel = myColor === 'white' ? '♔ Білі' : '♚ Чорні';
                     const oppColorLabel = myColor === 'white' ? '♚ Чорні' : '♔ Білі';
                     document.getElementById('myColorLabel').textContent = myColorLabel;
@@ -995,18 +1082,19 @@
                     document.getElementById('opponentName').textContent = 'Суперник';
                     document.getElementById('tagOpponent').classList.remove('waiting');
                     setStatus(myTurn ? '♟ Ваш хід!' : '⏳ Хід суперника...', myTurn ? 'myturn' : 'theirturn');
+                    // ВКЛЮЧАЄМО ГОДИННИК ПІСЛЯ ЗАПУСКУ МАТЧУ SUPER_HOT
+                    startMultiplayerTimer();
                 }
 
                 if (data.type === 'update') {
-                    const moverIsMe = (data.turn !== myColor); // хто щойно ходив = той, чия черга ЗАКІНЧИЛАСЬ
+                    const moverIsMe = (data.turn !== myColor);
                     updateCaptured(prevFen, data.fen, moverIsMe);
                     prevFen = data.fen;
-                    if (game) game.load(data.fen);
 
-                    board.position(data.fen);
+                    if (game) game.load(data.fen);
+                    board.position(data.fen, !moverIsMe);
                     setTimeout(() => highlightLastMove(data.move), 200);
 
-                    // Додаємо в історію
                     const isMyMove = moverIsMe;
                     const lastEntry = moveHistory[moveHistory.length - 1];
                     if (isMyMove) {
@@ -1015,12 +1103,15 @@
                         if (lastEntry && !lastEntry.p2) lastEntry.p2 = data.move;
                         else moveHistory.push({ p1: '', p2: data.move });
                     }
+
                     renderMoveHistory();
 
                     myTurn = (data.turn === myColor);
                     setTurnIndicator(myTurn);
 
                     if (data.is_game_over) {
+                        clearInterval(timerInterval);
+                        isGameRunning = false;
                         const r = data.result;
                         let msg = '', cls = '';
                         if (r === '1-0' && myColor === 'white') { msg = '🏆 Ви перемогли!'; cls = 'win'; }
@@ -1038,6 +1129,8 @@
                 }
 
                 if (data.type === 'disconnect') {
+                    clearInterval(timerInterval);
+                    isGameRunning = false;
                     setStatus('⚠️ Суперник відключився!', 'error');
                     setConnBadge(false);
                     document.getElementById('opponentName').textContent = 'Суперник відключився';
@@ -1052,13 +1145,14 @@
 
             ws.onclose = (e) => {
                 setConnBadge(false);
+                clearInterval(timerInterval);
+                isGameRunning = false;
                 if (e.code !== 1000) {
                     setStatus("⚠️ З'єднання втрачено.", 'error');
                 }
             };
         }
 
-        // ── Promotion ──
         function choosePromotion(piece) {
             document.getElementById('promotionModal').classList.remove('open');
             if (!pendingPromoMove) return;
@@ -1067,7 +1161,6 @@
             sendMoveWS(move, piece);
         }
 
-        // ── Send move ──
         function sendMoveWS(move, promotion = 'q') {
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 setStatus('❌ Не підключені до гри!', 'error'); return;
@@ -1078,61 +1171,43 @@
         function onDragStart(source, piece, position, orientation) {
             if (!ws || ws.readyState !== WebSocket.OPEN) return false;
             if (!myTurn) return false;
+            // Забороняємо тягати фігури суперника
             if ((myColor === 'white' && piece.search(/^b/) !== -1) ||
                 (myColor === 'black' && piece.search(/^w/) !== -1)) {
                 return false;
             }
-
+            // Розраховуємо та підсвічуємо можливі ходи
             if (game) {
-                const moves = game.moves({
-                    square: source,
-                    verbose: true
-                });
+                const moves = game.moves({ square: source, verbose: true });
                 if (moves.length === 0) return;
-
-                moves.forEach(m => {
-                    const isCapture = m.flags.includes('c') || m.flags.includes('e');
-                    $(`#myBoard .square-${m.to}`).addClass('highlight-hint' + (isCapture ? ' is-capture' : ''));
-                });
+                moves.forEach(m => showHint(m.to));
             }
         }
 
         function onDrop(source, target, piece) {
-            $(`#myBoard .square-55d63, #myBoard .square-2b130`).removeClass('highlight-hint is-capture');
-
+            // Очищуємо всі підказки ходів, щойно фігуру відпустили
+            removeHints();
             if (!ws || ws.readyState !== WebSocket.OPEN) return 'snapback';
             if (!myTurn) return 'snapback';
-
             if (game) {
-                const move = game.move({
-                    from: source,
-                    to: target,
-                    promotion: 'q'
-                });
+                const move = game.move({ from: source, to: target, promotion: 'q' });
                 if (move === null) return 'snapback';
-                game.undo();
-            }
+                const isPawn = piece && piece[1] === 'P';
+                const isPromoRank = (piece[0] === 'w' && target[1] === '8') || (piece[0] === 'b' && target[1] === '1');
 
+                if (isPawn && isPromoRank) {
+                    game.undo();
+                    pendingPromoMove = source + target;
+                    document.getElementById('promotionModal').classList.add('open');
+                    return 'snapback';
+                }
+            }
             const moveStr = source + target;
-            const isPawn = piece && piece[1] === 'P';
-            const isPromoRank = (piece[0] === 'w' && target[1] === '8') ||
-                (piece[0] === 'b' && target[1] === '1');
-            if (isPawn && isPromoRank) {
-                pendingPromoMove = moveStr;
-                document.getElementById('promotionModal').classList.add('open');
-                return 'snapback';
-            }
-
             sendMoveWS(moveStr);
-            return 'snapback';
         }
 
-        // ── Init board ──
         const config = {
-            draggable: true,
-            position: 'start',
-            onDragStart: onDragStart,
-            onDrop: onDrop,
+            draggable: true, position: 'start', onDragStart: onDragStart, onDrop: onDrop,
             onSnapEnd: () => { if (board && game) board.position(game.fen()); },
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
