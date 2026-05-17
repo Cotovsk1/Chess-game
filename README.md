@@ -85,7 +85,10 @@ Chess-game/
 └── frontend/
     ├── menu.html             # Main menu / landing page
     ├── index.html            # Single-player game (vs bot)
-    └── multiplayer.html      # Multiplayer game (WebSocket)
+    ├── multiplayer.html      # Multiplayer game (WebSocket)
+    ├── profile.html          # User profile page
+    ├── edit_profile.html     # Profile edit page
+    └── static/               # Frontend assets (CSS, JS, icons)
 ```
 
 ---
@@ -140,14 +143,20 @@ A background `asyncio` task runs every 10 minutes and removes games that have ha
 | `POST` | `/auth/register` | Create a new account |
 | `POST` | `/auth/login` | Obtain JWT access token |
 | `GET` | `/auth/me` | Get current user profile |
+| `PUT` | `/auth/update` | Update user profile details |
 | `POST` | `/game/start` | Start a new game vs bot |
 | `POST` | `/game/start_custom` | Start from a custom FEN position |
 | `GET` | `/game/{game_id}` | Get current game state & timers |
 | `POST` | `/game/play/{game_id}` | Submit a human move |
-| `DELETE` | `/game/{game_id}` | Resign / forfeit |
+| `POST` | `/game/resign/{game_id}` | Resign the current game |
+| `POST` | `/game/undo/{game_id}` | Undo the last move |
+| `GET` | `/game/hint/{game_id}` | Get best move hint |
+| `GET` | `/games/history` | Get user game history |
+| `GET` | `/chat/global` | Get global chat messages |
+| `GET` | `/chat/game/{game_id}` | Get in-game chat messages |
 | `WS` | `/ws/game/{game_id}` | Multiplayer WebSocket connection |
 | `WS` | `/ws/notifications` | Per-user notification WebSocket |
-| `GET/POST` | `/friends/...` | Friend requests and friend list management |
+| `POST/GET/DELETE` | `/friends/...` | Friend requests and friend list management |
 
 Interactive API docs are available at `http://127.0.0.1:8000/docs` when the server is running.
 
