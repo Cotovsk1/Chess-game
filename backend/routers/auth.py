@@ -131,6 +131,7 @@ async def update_profile(
 
     old_username = current_user.username
     current_user.username = username
+    current_user.status_text = status_text
 
     # Видалення аватара
     if delete_avatar == "true":

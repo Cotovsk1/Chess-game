@@ -11,6 +11,7 @@ class MoveRequest(BaseModel):
 class StartGameRequest(BaseModel):
     level: int = Field(5, ge=1, le=10)
     time_control_id: int | None = None
+    color: str = "w"  # 'w', 'b', або 'random'
 
 
 class CustomGameRequest(BaseModel):
@@ -31,6 +32,8 @@ class PlayerResponse(BaseModel):
     email: str
     rating: int
     avatar_url: str | None = None
+    status_text: str | None = None
+    created_at: datetime | None = None
     is_active: bool = True
 
 

@@ -12,6 +12,8 @@ class Player(Base):
     password_hash = Column(String(255), nullable=False)
     rating = Column(Integer, default=1200, nullable=False)
     avatar_url = Column(String(255), nullable=True)
+    status_text = Column(String(100), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
     is_active = Column(Boolean, default=True, nullable=False)
 
     friendships_initiated = relationship("Friendship", foreign_keys="Friendship.user1_id", back_populates="user1")

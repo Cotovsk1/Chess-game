@@ -559,7 +559,7 @@
         let isTimerActive = false;
 
         // Змінна для збереження вибраного кольору (за замовчуванням 'w' - білі)
-        let selectedColor = 'w';
+        let playerColor = 'w';
 
         const chessScript = document.createElement('script');
         chessScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js';
@@ -611,7 +611,14 @@
         }
 
         function onDragStart(source, piece) {
-            if (waitingForBot || !currentGameId || piece.search(/^b/) !== -1) return false;
+            if (waitingForBot || !currentGameId) return false;
+
+            // Якщо ми граємо білими, не можна брати чорні фігури. Якщо чорними - не можна брати білі.
+            if ((playerColor === 'w' && piece.search(/^b/) !== -1) ||
+                (playerColor === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+
             const moves = game.moves({ square: source, verbose: true });
             moves.forEach(m => showHint(m.to));
         }
@@ -746,7 +753,23 @@
             });
             const data = await res.json();
             currentGameId = data.game_id; moveHistory = [];
-            game.reset(); board.start(); buildLevelGrid();
+            playerColor = data.player_color || 'w';
+
+            // Встановлюємо орієнтацію дошки відповідно до кольору
+            board.orientation(playerColor === 'w' ? 'white' : 'black');
+
+            game.reset();
+            if (data.fen && data.fen !== game.fen()) {
+                game.load(data.fen);
+                board.position(data.fen, false);
+                if (data.bot_move) {
+                    moveHistory.push({ h: '—', b: data.bot_move });
+                }
+            } else {
+                board.start();
+            }
+
+            buildLevelGrid();
             setStatus('Твій хід!', '');
 
             if (isTimerActive) { startTimerLogic(); } else { clearInterval(timerInterval); }
