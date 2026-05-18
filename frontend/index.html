@@ -673,7 +673,7 @@
 
             document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active-side'));
             element.classList.add('active-side');
-            selectedColor = color; // Записуємо вибір у змінну
+            playerColor = color; // Записуємо вибір у змінну
         }
 
         function startTimerLogic() {
@@ -685,10 +685,12 @@
             timerInterval = setInterval(() => {
                 if (!currentGameId) return;
 
-                if (game.turn() === 'w') {
-                    if (waitingForBot) { botTime--; } else { humanTime--; }
-                } else {
+                // Якщо бекенд очікує відповіді від Stockfish — зменшуємо час бота
+                if (waitingForBot) {
                     botTime--;
+                } else {
+                    // Якщо бот не думає, отже черга ходу за гравцем
+                    humanTime--;
                 }
 
                 if (humanTime <= 0) {
@@ -749,7 +751,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
                 // ТУТ МАГІЯ: Коли буде готовий бекенд, змінна selectedColor передасть туди твій вибір ('w', 'random', 'b')
-                body: JSON.stringify({ level: currentLevel, color: selectedColor })
+                body: JSON.stringify({ level: currentLevel, color: playerColor })
             });
             const data = await res.json();
             currentGameId = data.game_id; moveHistory = [];
