@@ -170,22 +170,25 @@
 
         /* ДОДАНІ СТИЛІ ДЛЯ СКРОЛЛБАРУ ІСТОРІЇ ПАРТІЙ */
         .history-scroll-container {
-            max-height: 380px; 
-            overflow-y: auto;  
+            max-height: 380px;
+            overflow-y: auto;
             padding-right: 8px;
         }
 
         .history-scroll-container::-webkit-scrollbar {
             width: 6px;
         }
+
         .history-scroll-container::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.02);
             border-radius: 4px;
         }
+
         .history-scroll-container::-webkit-scrollbar-thumb {
             background: rgba(148, 163, 184, 0.3);
             border-radius: 4px;
         }
+
         .history-scroll-container::-webkit-scrollbar-thumb:hover {
             background: rgba(168, 85, 247, 0.5);
         }
@@ -386,14 +389,16 @@
 
         <div class="profile-header">
             <div class="avatar-container">
-                <img id="userAvatar" src="https://www.w3schools.com/howto/img_avatar.png" class="profile-avatar" alt="Аватар">
+                <img id="userAvatar" src="https://www.w3schools.com/howto/img_avatar.png" class="profile-avatar"
+                    alt="Аватар">
             </div>
             <div class="user-info">
                 <div class="user-name" id="userName">Завантаження...</div>
                 <div class="user-status" id="userStatus">Граймо в шахи!</div>
                 <div class="user-meta" id="userMeta">Приєднався: щойно</div>
             </div>
-            <button class="btn-edit" onclick="if(typeof window.loadPageAsOverlay === 'function') { window.loadPageAsOverlay('/ui/edit_profile.html'); } else { window.location.href = '/ui/edit_profile.html'; }">Редагувати</button>
+            <button class="btn-edit"
+                onclick="if(typeof window.loadPageAsOverlay === 'function') { window.loadPageAsOverlay('/ui/edit_profile.html'); } else { window.location.href = '/ui/edit_profile.html'; }">Редагувати</button>
         </div>
 
         <div class="profile-grid">
@@ -403,7 +408,7 @@
                     <span>Поточний рейтинг:</span>
                     <span class="rating-value" id="userRating">0 Elo</span>
                 </div>
-                
+
                 <div class="history-scroll-container">
                     <table class="history-table">
                         <thead>
@@ -416,7 +421,8 @@
                         </thead>
                         <tbody id="historyBody">
                             <tr>
-                                <td colspan="4" style="color: #64748b; text-align: center; padding: 20px;">Завантаження історії...</td>
+                                <td colspan="4" style="color: #64748b; text-align: center; padding: 20px;">Завантаження
+                                    історії...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -445,7 +451,8 @@
                     </div>
 
                     <div id="friendsList">
-                        <div style="color: #64748b; text-align: center; padding: 15px; font-size: 0.9em;">Завантаження друзів...</div>
+                        <div style="color: #64748b; text-align: center; padding: 15px; font-size: 0.9em;">Завантаження
+                            друзів...</div>
                     </div>
                 </div>
             </div>
@@ -467,7 +474,7 @@
             }
 
             // Робимо функцію глобальною, щоб її можна було викликати з оверлею
-            window.loadProfile = async function() {
+            window.loadProfile = async function () {
                 try {
                     const res = await fetch(`${baseUrl}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
 

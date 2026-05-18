@@ -18,8 +18,7 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start; 
-            /* ВИПРАВЛЕНО: Збільшено верхній відступ до 130px, щоб опустити картку нижче від стелі */
+            align-items: flex-start;
             padding: 130px 20px 60px 20px;
         }
 
@@ -46,11 +45,27 @@
             cursor: pointer;
         }
 
-        .back-link:hover { color: #a3d96c; }
-        .back-link::before { content: "← "; margin-right: 6px; }
+        .back-link:hover {
+            color: #a3d96c;
+        }
 
-        h2 { color: #fff; font-size: 2em; font-weight: 700; margin-bottom: 4px; }
-        .subtitle { font-size: 0.95em; color: #7d7b78; margin-bottom: 25px; }
+        .back-link::before {
+            content: "← ";
+            margin-right: 6px;
+        }
+
+        h2 {
+            color: #fff;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #7d7b78;
+            margin-bottom: 25px;
+        }
 
         .avatar-edit-zone {
             display: flex;
@@ -74,11 +89,18 @@
             flex-shrink: 0;
         }
 
-        .profile-avatar { width: 100%; height: 100%; object-fit: cover; }
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .avatar-overlay {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.7);
             display: flex;
             align-items: center;
@@ -92,16 +114,41 @@
             text-transform: uppercase;
         }
 
-        .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+        .avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
 
-        .avatar-meta { display: flex; flex-direction: column; gap: 6px; }
-        .avatar-title { color: #fff; font-weight: 600; }
-        .avatar-desc { font-size: 0.85em; color: #7d7b78; }
+        .avatar-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-        #fileInput { display: none; }
+        .avatar-title {
+            color: #fff;
+            font-weight: 600;
+        }
 
-        .form-group { margin-bottom: 20px; }
-        label { display: block; color: #fff; font-weight: 600; font-size: 0.95em; margin-bottom: 8px; }
+        .avatar-desc {
+            font-size: 0.85em;
+            color: #7d7b78;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
 
         input[type="text"] {
             width: 100%;
@@ -113,7 +160,10 @@
             font-size: 1em;
         }
 
-        input[type="text"]:focus { outline: none; border-color: #81b64c; }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #81b64c;
+        }
 
         .action-block {
             display: flex;
@@ -136,8 +186,14 @@
             box-shadow: 0 4px 0 #5f8933;
         }
 
-        .btn-save:hover { background: #95cc5e; }
-        .btn-save:active { transform: translateY(2px); box-shadow: 0 2px 0 #5f8933; }
+        .btn-save:hover {
+            background: #95cc5e;
+        }
+
+        .btn-save:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5f8933;
+        }
 
         .btn-logout {
             background: transparent;
@@ -151,7 +207,10 @@
             transition: all 0.2s;
         }
 
-        .btn-logout:hover { background: #e06666; color: #fff; }
+        .btn-logout:hover {
+            background: #e06666;
+            color: #fff;
+        }
 
         .logout-confirm-zone {
             display: none;
@@ -163,12 +222,36 @@
             text-align: center;
         }
 
-        .logout-confirm-zone p { color: #fff; font-size: 0.95em; margin-bottom: 12px; }
+        .logout-confirm-zone p {
+            color: #fff;
+            font-size: 0.95em;
+            margin-bottom: 12px;
+        }
 
-        .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+        .confirm-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
 
-        .btn-yes { background: #e06666; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 700; }
-        .btn-no { background: #3d3b38; color: #bababa; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+        .btn-yes {
+            background: #e06666;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn-no {
+            background: #3d3b38;
+            color: #bababa;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
         .btn-delete-photo {
             background: transparent;
@@ -182,14 +265,19 @@
             align-self: flex-start;
         }
 
-        #msg { margin-top: 15px; font-size: 0.95em; min-height: 1.5em; }
+        #msg {
+            margin-top: 15px;
+            font-size: 0.95em;
+            min-height: 1.5em;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="edit-container">
-        <a href="/ui/menu.html?skipStart=true" class="back-link" onclick="if(typeof window.loadPageAsOverlay === 'function') { event.preventDefault(); window.loadPageAsOverlay('/ui/profile.html'); }">Скасувати</a>
+        <a href="/ui/menu.html?skipStart=true" class="back-link"
+            onclick="if(typeof window.loadPageAsOverlay === 'function') { event.preventDefault(); window.loadPageAsOverlay('/ui/profile.html'); }">Скасувати</a>
 
         <h2>Налаштування профілю</h2>
         <p class="subtitle">Оновіть інформацію свого акаунту</p>
@@ -241,17 +329,17 @@
             let localSelectedFile = null;
             let isPhotoDeleted = false; // ТРИМАЄМО СТАН: чи було видалено аватарку
 
-            window.showConfirmZone = function() {
+            window.showConfirmZone = function () {
                 document.getElementById('logoutBtn').style.display = 'none';
                 document.getElementById('logoutConfirmZone').style.display = 'block';
             };
 
-            window.hideConfirmZone = function() {
+            window.hideConfirmZone = function () {
                 document.getElementById('logoutBtn').style.display = 'block';
                 document.getElementById('logoutConfirmZone').style.display = 'none';
             };
 
-            window.confirmLogout = function() {
+            window.confirmLogout = function () {
                 localStorage.removeItem('chess_token');
                 window.location.href = '/ui/menu.html';
             };
@@ -299,12 +387,12 @@
                 const formData = new FormData();
                 formData.append('username', username);
                 formData.append('status_text', statusText);
-                
+
                 // ВИПРАВЛЕНО: Якщо юзер натиснув "Видалити фото", відправляємо пусту строку замість файлу,
                 // щоб бекенд затер старий шлях в базі даних. Якщо завантажив нове — шлемо файл.
                 if (isPhotoDeleted) {
                     formData.append('delete_avatar', 'true'); // або передаємо пусте поле залежно від логіки FastAPI
-                    formData.append('file', ''); 
+                    formData.append('file', '');
                 } else if (localSelectedFile) {
                     formData.append('file', localSelectedFile);
                 }
@@ -318,7 +406,7 @@
                     if (res.ok) {
                         msgBlock.style.color = '#81b64c';
                         msgBlock.textContent = "Зміни збережено успішно!";
-                        setTimeout(() => { 
+                        setTimeout(() => {
                             // ПЕРЕД ТИМ ЯК ЗАКРИТИ ОВЕРЛЕЙ, ОНОВЛЮЄМО ДАНІ НА СТОРІНЦІ ПРОФІЛЮ
                             if (window.parent && typeof window.parent.loadProfile === 'function') {
                                 window.parent.loadProfile();
@@ -342,8 +430,8 @@
                 } catch (err) { console.error(err); }
             };
 
-            window.deletePhoto = function() {
-                if(confirm("Видалити фото профілю?")) {
+            window.deletePhoto = function () {
+                if (confirm("Видалити фото профілю?")) {
                     document.getElementById('avatarPreview').src = 'https://www.w3schools.com/howto/img_avatar.png';
                     localSelectedFile = null;
                     isPhotoDeleted = true; // Фіксуємо факт видалення картинки
@@ -354,4 +442,5 @@
         })();
     </script>
 </body>
+
 </html>

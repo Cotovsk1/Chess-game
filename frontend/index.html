@@ -366,7 +366,10 @@
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: rgba(255, 255, 255, 0.1);
             transition: .3s;
             border-radius: 24px;
@@ -385,16 +388,16 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: #2563eb;
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(20px);
             background-color: #fff;
         }
 
-        input:disabled + .slider {
+        input:disabled+.slider {
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -486,7 +489,7 @@
                 <button class="action-btn btn-start"
                     style="width:100%; padding:14px; border:none; border-radius:14px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer;"
                     onclick="startNewGame()">▶ Нова гра</button>
-                
+
                 <div class="toggle-container">
                     <span class="toggle-label">Гра з таймером (10 хв)</span>
                     <label class="switch">
@@ -496,9 +499,12 @@
                 </div>
 
                 <div class="color-selector-zone" id="colorZone">
-                    <button class="color-btn white-side active-side" onclick="selectGameColor('w', this)" title="Грати білими">♔</button>
-                    <button class="color-btn random-side" onclick="selectGameColor('random', this)" title="Випадковий колір">?</button>
-                    <button class="color-btn black-side" onclick="selectGameColor('b', this)" title="Грати чорними">♚</button>
+                    <button class="color-btn white-side active-side" onclick="selectGameColor('w', this)"
+                        title="Грати білими">♔</button>
+                    <button class="color-btn random-side" onclick="selectGameColor('random', this)"
+                        title="Випадковий колір">?</button>
+                    <button class="color-btn black-side" onclick="selectGameColor('b', this)"
+                        title="Грати чорними">♚</button>
                 </div>
             </div>
             <div class="panel-card">
@@ -548,12 +554,12 @@
         const LEVEL_NAMES = { 1: '🌱 Новачок', 2: '🐣 Початківець', 3: '📗 Легкий', 4: '🎯 Нижче середнього', 5: '⚖️ Середній', 6: '🔥 Вище середнього', 7: '💪 Складний', 8: '🏆 Експерт', 9: '⚡ Майстер', 10: '💀 Гросмейстер' };
 
         let timerInterval = null;
-        let humanTime = 600; 
+        let humanTime = 600;
         let botTime = 600;
         let isTimerActive = false;
 
         // Змінна для збереження вибраного кольору (за замовчуванням 'w' - білі)
-        let selectedColor = 'w';
+        let playerColor = 'w';
 
         const chessScript = document.createElement('script');
         chessScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js';
@@ -591,7 +597,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'lvl-btn' + (i === currentLevel ? ' active' : '');
                 btn.textContent = i;
-                btn.onclick = () => { if(!currentGameId) { currentLevel = i; buildLevelGrid(); } };
+                btn.onclick = () => { if (!currentGameId) { currentLevel = i; buildLevelGrid(); } };
                 grid.appendChild(btn);
             }
             document.getElementById('levelName').textContent = LEVEL_NAMES[currentLevel];
@@ -605,7 +611,14 @@
         }
 
         function onDragStart(source, piece) {
-            if (waitingForBot || !currentGameId || piece.search(/^b/) !== -1) return false;
+            if (waitingForBot || !currentGameId) return false;
+
+            // Якщо ми граємо білими, не можна брати чорні фігури. Якщо чорними - не можна брати білі.
+            if ((playerColor === 'w' && piece.search(/^b/) !== -1) ||
+                (playerColor === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+
             const moves = game.moves({ square: source, verbose: true });
             moves.forEach(m => showHint(m.to));
         }
@@ -621,14 +634,14 @@
             // ФІКС БАГУ: Перевіряємо наявність шаху САМЕ ТОДІ, коли хід виконано у рушії
             const isPlayerCheck = game.in_check();
             // Тільки тепер скасовуємо хід, щоб дочекатися анімації/відповіді бекенду
-            game.undo(); 
+            game.undo();
             // Перевіряємо, чи це промоція білого пішака
             const isPawn = piece && piece.type === 'p' && piece.color === 'w';
             const isPromoRank = (target[1] === '8');
             if (isPawn && isPromoRank) {
                 pendingPromoMove = { from: source, to: target };
                 document.getElementById('promotionModal').style.display = 'flex';
-                return 'snapback'; 
+                return 'snapback';
             }
             // Якщо це звичайний хід — передаємо правильний статус шаху
             sendMove(source + target, 'q', isPlayerCheck);
@@ -643,7 +656,7 @@
             game.move({ from: from, to: to, promotion: piece });
             // ФІКС БАГУ: Перевіряємо наявність шаху ПЕРЕД undo()
             const isPlayerCheck = game.in_check();
-            game.undo(); 
+            game.undo();
             // Відправляємо хід на бекенд
             sendMove(from + to, piece, isPlayerCheck);
         }
@@ -657,10 +670,10 @@
         // Функція для перемикання кнопок вибору кольору (Фронтенд-частина)
         function selectGameColor(color, element) {
             if (currentGameId) return; // Забороняємо перемикати під час активної партії
-            
+
             document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active-side'));
             element.classList.add('active-side');
-            selectedColor = color; // Записуємо вибір у змінну
+            playerColor = color; // Записуємо вибір у змінну
         }
 
         function startTimerLogic() {
@@ -670,12 +683,14 @@
             updateTimerUI();
 
             timerInterval = setInterval(() => {
-                if (!currentGameId) return; 
+                if (!currentGameId) return;
 
-                if (game.turn() === 'w') {
-                    if (waitingForBot) { botTime--; } else { humanTime--; }
-                } else {
+                // Якщо бекенд очікує відповіді від Stockfish — зменшуємо час бота
+                if (waitingForBot) {
                     botTime--;
+                } else {
+                    // Якщо бот не думає, отже черга ходу за гравцем
+                    humanTime--;
                 }
 
                 if (humanTime <= 0) {
@@ -684,7 +699,7 @@
                     currentGameId = null;
                     unlockSettings();
                 }
-                
+
                 if (botTime <= 0) {
                     clearInterval(timerInterval);
                     setStatus('ЧАС БОТА ВИЧЕРПАНО! Ви перемогли!', 'win');
@@ -736,11 +751,27 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
                 // ТУТ МАГІЯ: Коли буде готовий бекенд, змінна selectedColor передасть туди твій вибір ('w', 'random', 'b')
-                body: JSON.stringify({ level: currentLevel, color: selectedColor })
+                body: JSON.stringify({ level: currentLevel, color: playerColor })
             });
             const data = await res.json();
             currentGameId = data.game_id; moveHistory = [];
-            game.reset(); board.start(); buildLevelGrid();
+            playerColor = data.player_color || 'w';
+
+            // Встановлюємо орієнтацію дошки відповідно до кольору
+            board.orientation(playerColor === 'w' ? 'white' : 'black');
+
+            game.reset();
+            if (data.fen && data.fen !== game.fen()) {
+                game.load(data.fen);
+                board.position(data.fen, false);
+                if (data.bot_move) {
+                    moveHistory.push({ h: '—', b: data.bot_move });
+                }
+            } else {
+                board.start();
+            }
+
+            buildLevelGrid();
             setStatus('Твій хід!', '');
 
             if (isTimerActive) { startTimerLogic(); } else { clearInterval(timerInterval); }
@@ -861,7 +892,7 @@
         function calculateCapturedPieces() {
             const startingPieces = {
                 'p': 8, 'r': 2, 'n': 2, 'b': 2, 'q': 1, 'k': 1,
-                'P': 8, 'R': 2, 'N': 2, 'B': 2, 'Q': 1, 'K': 1  
+                'P': 8, 'R': 2, 'N': 2, 'B': 2, 'Q': 1, 'K': 1
             };
 
             const currentPieces = {
@@ -879,8 +910,8 @@
             });
 
             const symbols = {
-                'p': '♙', 'r': '♖', 'n': '♘', 'b': '♗', 'q': '♕', 
-                'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕'  
+                'p': '♙', 'r': '♖', 'n': '♘', 'b': '♗', 'q': '♕',
+                'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕'
             };
 
             let capturedByHuman = '';
@@ -888,7 +919,7 @@
 
             for (const key in startingPieces) {
                 const diff = startingPieces[key] - currentPieces[key];
-                if (diff > 0 && key !== 'k' && key !== 'K') { 
+                if (diff > 0 && key !== 'k' && key !== 'K') {
                     for (let i = 0; i < diff; i++) {
                         if (key === key.toUpperCase()) {
                             capturedByBot += symbols[key] + ' ';
@@ -912,14 +943,22 @@
         board = Chessboard('myBoard', config);
         buildLevelGrid();
     </script>
-    <div id="promotionModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
-        <div class="promo-box" style="background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-            <h3 style="margin: 0 0 24px; font-size: 1.1em; color: #94a3b8; font-weight: 600; text-transform: none; letter-spacing: normal;">Виберіть фігуру для промоції</h3>
+    <div id="promotionModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="promo-box"
+            style="background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 40px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <h3
+                style="margin: 0 0 24px; font-size: 1.1em; color: #94a3b8; font-weight: 600; text-transform: none; letter-spacing: normal;">
+                Виберіть фігуру для промоції</h3>
             <div class="promo-pieces" style="display: flex; gap: 16px; justify-content: center;">
-                <span class="promo-piece" onclick="choosePromotion('q')" title="Ферзь" style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♛</span>
-                <span class="promo-piece" onclick="choosePromotion('r')" title="Тура" style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♜</span>
-                <span class="promo-piece" onclick="choosePromotion('b')" title="Слон" style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♝</span>
-                <span class="promo-piece" onclick="choosePromotion('n')" title="Кінь" style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♞</span>
+                <span class="promo-piece" onclick="choosePromotion('q')" title="Ферзь"
+                    style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♛</span>
+                <span class="promo-piece" onclick="choosePromotion('r')" title="Тура"
+                    style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♜</span>
+                <span class="promo-piece" onclick="choosePromotion('b')" title="Слон"
+                    style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♝</span>
+                <span class="promo-piece" onclick="choosePromotion('n')" title="Кінь"
+                    style="font-size: 64px; cursor: pointer; line-height: 1; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 12px 20px; transition: all 0.2s; background: rgba(255, 255, 255, 0.02);">♞</span>
             </div>
         </div>
     </div>

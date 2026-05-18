@@ -465,9 +465,17 @@
         }
 
         @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
         }
 
         /* ── RIGHT PANEL ── */
@@ -478,7 +486,10 @@
             font-size: 0.9em;
         }
 
-        .move-list::-webkit-scrollbar { width: 6px; }
+        .move-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
         .move-list::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
@@ -493,10 +504,25 @@
             margin-bottom: 2px;
         }
 
-        .move-row:nth-child(odd) { background: rgba(255, 255, 255, 0.02); }
-        .move-num { color: #475569; font-weight: 600; }
-        .move-cell { color: #cbd5e1; border-radius: 4px; padding: 2px 6px; }
-        .move-cell.p2 { color: #93c5fd; }
+        .move-row:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .move-num {
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .move-cell {
+            color: #cbd5e1;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+
+        .move-cell.p2 {
+            color: #93c5fd;
+        }
+
         .move-cell.last {
             background: rgba(16, 185, 129, 0.2);
             color: #6ee7b7;
@@ -591,7 +617,9 @@
             align-items: center;
         }
 
-        #promotionModal.open { display: flex; }
+        #promotionModal.open {
+            display: flex;
+        }
 
         .promo-box {
             background: #1e293b;
@@ -609,7 +637,12 @@
             font-weight: 600;
         }
 
-        .promo-pieces { display: flex; gap: 16px; justify-content: center; }
+        .promo-pieces {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
         .promo-piece {
             font-size: 64px;
             cursor: pointer;
@@ -654,7 +687,9 @@
 
             <div class="room-id-box" id="roomIdBox">
                 <div class="id-label">ID кімнати:</div>
-                <div id="roomIdText" style="font-family: monospace; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-bottom: 8px;"></div>
+                <div id="roomIdText"
+                    style="font-family: monospace; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                </div>
                 <button class="copy-btn" onclick="copyRoomId()">📋 Копіювати ID</button>
                 <div class="id-label" style="margin-top:12px;">Посилання для друга:</div>
                 <button class="copy-btn" onclick="copyFriendLink()">🔗 Копіювати посилання</button>
@@ -663,14 +698,24 @@
             <div class="panel-card">
                 <h3>Статус</h3>
                 <div class="step-list">
-                    <div class="step" id="step1"><div class="step-icon">1</div> Створити / приєднатись</div>
-                    <div class="step" id="step2"><div class="step-icon">2</div> WS з'єднання</div>
-                    <div class="step" id="step3"><div class="step-icon">3</div> Очікуємо суперника</div>
-                    <div class="step" id="step4"><div class="step-icon">4</div> Гра розпочата</div>
+                    <div class="step" id="step1">
+                        <div class="step-icon">1</div> Створити / приєднатись
+                    </div>
+                    <div class="step" id="step2">
+                        <div class="step-icon">2</div> WS з'єднання
+                    </div>
+                    <div class="step" id="step3">
+                        <div class="step-icon">3</div> Очікуємо суперника
+                    </div>
+                    <div class="step" id="step4">
+                        <div class="step-icon">4</div> Гра розпочата
+                    </div>
                 </div>
             </div>
 
-            <button class="action-btn btn-menu" onclick="if(typeof window.loadPageAsOverlay === 'function') { const overlay = document.getElementById('activePageOverlay'); if(overlay) overlay.remove(); const currentStyles = document.getElementById('overlayDynamicStyles'); if(currentStyles) currentStyles.remove(); const gameContainer = document.querySelector('.game-container'); if(gameContainer) gameContainer.style.display = 'flex'; window.scrollTo(0, 0); } else { location.href='/ui/menu.html?skipStart=true'; }">← Повернутись в меню</button>
+            <button class="action-btn btn-menu"
+                onclick="if(typeof window.loadPageAsOverlay === 'function') { const overlay = document.getElementById('activePageOverlay'); if(overlay) overlay.remove(); const currentStyles = document.getElementById('overlayDynamicStyles'); if(currentStyles) currentStyles.remove(); const gameContainer = document.querySelector('.game-container'); if(gameContainer) gameContainer.style.display = 'flex'; window.scrollTo(0, 0); } else { location.href='/ui/menu.html?skipStart=true'; }">←
+                Повернутись в меню</button>
         </div>
 
         <div class="board-area">
@@ -747,12 +792,12 @@
         let board = null;
         let ws = null;
         let currentGameId = null;
-        let myColor = null;  
+        let myColor = null;
         let myTurn = false;
         let pendingPromoMove = null;
         let lastHighlightedSquares = [];
         let moveHistory = [];
-        let prevFen = null;    
+        let prevFen = null;
 
         // Перемінні для управління мультиплеєрним годинником
         let timerInterval = null;
@@ -808,8 +853,8 @@
             lastHighlightedSquares = [from, to];
         }
 
-        function removeHints() { 
-            $('#myBoard [class*="square-"]').removeClass('highlight-hint is-capture'); 
+        function removeHints() {
+            $('#myBoard [class*="square-"]').removeClass('highlight-hint is-capture');
         }
 
         function showHint(square) {
@@ -1045,7 +1090,7 @@
                     const moverIsMe = (data.turn !== myColor);
                     updateCaptured(prevFen, data.fen, moverIsMe);
                     prevFen = data.fen;
-                    
+
                     if (game) game.load(data.fen);
                     board.position(data.fen, !moverIsMe);
                     setTimeout(() => highlightLastMove(data.move), 200);
@@ -1149,9 +1194,9 @@
                 if (move === null) return 'snapback';
                 const isPawn = piece && piece[1] === 'P';
                 const isPromoRank = (piece[0] === 'w' && target[1] === '8') || (piece[0] === 'b' && target[1] === '1');
-                
+
                 if (isPawn && isPromoRank) {
-                    game.undo(); 
+                    game.undo();
                     pendingPromoMove = source + target;
                     document.getElementById('promotionModal').classList.add('open');
                     return 'snapback';
